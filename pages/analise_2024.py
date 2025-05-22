@@ -10,8 +10,8 @@ from Functions.dictionaries import obter_dicionarios
 def page_analyse_2024():
     # Carrega o df
     df_final = criando_df_final_Rentabilidade(
-        "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Custos Fixos/2024/CF-txSala.xlsx",
-        "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv"
+        "Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv",
+        "Bases/Custos Fixos/2024/CF-txSala.xlsx"
     )
     
     st.title("🌟 Análise de Rentabilidade 2024")
