@@ -171,5 +171,3 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     print(df_final)
 
     return df_final
-
-criando_df_final_Rentabilidade("Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv","Bases/Custos Fixos/2024/CF-txSala.xlsx")
