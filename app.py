@@ -7,21 +7,26 @@ import streamlit as st
 from Functions.vmb import criando_df_final_Rentabilidade
 from Functions.dictionaries import obter_dicionarios
 from pages.analise_2024 import page_analyse_2024
+from pages.auth import login
 
-# Função principal
 def main():
-    st.title("Dashboard de Rentabilidade")
-    
-    # Menu de navegação
-    menu = {
-        "1 - Análise 2024": page_analyse_2024
-    }
-    
-    # Cria um menu lateral
-    escolha = st.sidebar.selectbox("Escolha uma página", list(menu.keys()))
+    # Sessão
+    if 'autenticado' not in st.session_state:
+        st.session_state['autenticado'] = False
 
-    # Executa a função da página escolhida
-    menu[escolha]()
+    # Tela de login
+    if not st.session_state['autenticado']:
+        if login():
+            st.session_state['autenticado'] = True
+        else:
+            st.stop()
+
+    # Depois do login, mostra só a opção de página
+    escolha = st.sidebar.selectbox("Escolha uma página:", [""] + list({"1 - Análise 2024": page_analyse_2024}.keys()))
+    
+    # Executa a página selecionada
+    if escolha == "1 - Análise 2024":
+        page_analyse_2024()
 
 if __name__ == "__main__":
     main()
