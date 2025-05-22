@@ -35,3 +35,11 @@ git push origin main
 # Novo projto no |Github:
 
 git init
+
+criar um .gitignore e colocar as coisas que não vão para o github:
+    venv/
+
+git add .
+git commit -m "Primeiro commit do projeto"
+git remote add origin https://github.com/SEU_USERNAME/NOME_DO_REPOSITORIO.git
+git push -u origin main ou master
