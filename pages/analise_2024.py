@@ -1,6 +1,11 @@
 import pandas as pd
+import numpy as np
+import os
+import glob
+from pathlib import Path
 import streamlit as st
 from Functions.vmb import criando_df_final_Rentabilidade
+from Functions.dictionaries import obter_dicionarios
 
 def page_analyse_2024():
     # Carrega o df
