@@ -1,0 +1,37 @@
+Ativar o ambiente virtual : 
+
+. .\venv\Scripts\Activate.ps1
+
+streamlit run app.py
+
+install requirements:
+
+pip install -r requirements.txt
+
+## Entrando ambiente de teste (feature/test) - aleterações aqui não interferem no master
+
+git checkout feature/test
+
+## subindo no github uma alteração do feature/test - não interefe no master
+git add . # aqui estou salvando na máquina
+git commit -m "teste" # Comitando o que foi feito, mas segue na máquina
+git push origin feature/test # push para o github
+
+## voltando para o ambiente master - Não testar nada aqui
+git checkout master 
+
+## nesse projeto: 
+
+venv\Scripts\activate
+
+depois de sair e voltar: 
+git status
+git add app.py
+git add .
+git commit -m "Atualiza cálculo da taxa sala"
+git push origin main
+
+
+# Novo projto no |Github:
+
+git init
