@@ -19,7 +19,7 @@ def page_analyse_2024():
         unidades_options = [
             "TODAS COMPILADAS", "ALPHAVILLE", "CAMPINAS", "COPACABANA", "GUARULHOS",
             "JARDINS", "LAPA", "LONDRINA", "MOOCA", "MOEMA", "OSASCO", "IPIRANGA",
-            "SÃO BERNARDO", "SANTO AMARO", "SANTOS", "TIJUCA", "TATUAPÉ", "TUCURUVI",
+            "SÃO BERNARDO", "SANTO AMARO","SOROCABA", "SANTOS", "TIJUCA", "TATUAPÉ", "TUCURUVI",
             "VILA MASCOTE"
         ]
         
@@ -57,6 +57,7 @@ def page_analyse_2024():
         df_gp = df_gp.rename(columns={'Valor liquido item' : 'Receita Gerada','Valor unitário' : 'Preço Praticado'})
         # Soma total de Lucro
         lucro_total = df_gp['Lucro'].sum()
+        custo_fixo_total = df_gp['Custo Fixo'].sum()
         
 
         # Separar procedimentos com lucro e prejuízo
@@ -70,6 +71,9 @@ def page_analyse_2024():
         else:
             color = 'red'
             st.markdown(f"<h3 style='color:{color}; text-align:center;'>Prejuízo Total: R$ {lucro_total:,.2f}</h3>", unsafe_allow_html=True)
+        
+            st.markdown(f"<h3 style='color:{color}; text-align:center;'>Prejuízo Total: R$ {custo_fixo_total:,.2f}</h3>", unsafe_allow_html=True)
+
 
         format_dict = {
         'Lucro': 'R$ {:,.2f}'.format,
