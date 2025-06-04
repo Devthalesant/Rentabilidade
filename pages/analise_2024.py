@@ -6,6 +6,7 @@ from pathlib import Path
 import streamlit as st
 from Functions.vmb import criando_df_final_Rentabilidade
 from Functions.dictionaries import obter_dicionarios
+import io
 
 def page_analyse_2024():
         # Carrega o df
@@ -84,6 +85,7 @@ def page_analyse_2024():
         # Separar procedimentos com lucro e prejuízo
         lucros = df_gp[df_gp['Lucro'] > 0].sort_values(by='Lucro', ascending=False)
         prejuizos = df_gp[df_gp['Lucro'] < 0].sort_values(by='Lucro')
+        quantidade_total = df_gp['Quantidade'].sum()
 
         # Exibir Receita Gerada Total
         if receita_total > custo_total:
@@ -99,9 +101,12 @@ def page_analyse_2024():
         if lucro_total >= 0:
             color = 'green'
             st.markdown(f"<h3 style='color:{color}; text-align:center;'>Lucro Total: R$ {lucro_total:,.2f}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color:black; text-align:center;'>Quantidade Total: {quantidade_total:,.0f}".replace(",", ".") + "</h3>", unsafe_allow_html=True)
+
         else:
             color = 'red'
             st.markdown(f"<h3 style='color:{color}; text-align:center;'>Prejuízo Total: R$ {lucro_total:,.2f}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color:black; text-align:center;'>Quantidade Total: {quantidade_total:,.0f}".replace(",", ".") + "</h3>", unsafe_allow_html=True)
 
 
         format_dict = {
@@ -179,3 +184,37 @@ def page_analyse_2024():
         # Ajusta o limite de células do Styler para evitar erro de excesso de células
         pd.set_option("styler.render.max_elements", df_database.size)
         st.dataframe(df_database)
+
+        # Opção para o usuário baixar os Dataframes exibidos em Excel:
+        st.subheader("Download dos Dataframes")
+
+        def to_excel_bytes(df):
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df.to_excel(writer, index=True)
+            return output.getvalue()
+
+        lucros_excel = to_excel_bytes(lucros)
+        prejuizos_excel = to_excel_bytes(prejuizos)
+        base_excel = to_excel_bytes(df_database)
+
+        st.download_button(
+            label="Baixar Dataframe de Procedimentos com Lucro",
+            data=lucros_excel,
+            file_name="lucros_procedimentos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        st.download_button(
+            label="Baixar Dataframe de Procedimentos com Prejuízo",
+            data=prejuizos_excel,
+            file_name="prejuizos_procedimentos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        st.download_button(
+            label="Baixar Base de Dados Completa",
+            data=base_excel,
+            file_name="base_dados_completa.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
