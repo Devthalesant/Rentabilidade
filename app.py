@@ -8,6 +8,7 @@ from Functions.vmb import criando_df_final_Rentabilidade
 from Functions.dictionaries import obter_dicionarios
 from pages.analise_2024 import page_analyse_2024
 from pages.auth import login
+from pages.analise_2025 import page_analyse_2025
 
 def main():
     # Sessão
@@ -22,11 +23,19 @@ def main():
             st.stop()
 
     # Depois do login, mostra só a opção de página
-    escolha = st.sidebar.selectbox("Escolha uma página:", [""] + list({"1 - Análise 2024": page_analyse_2024}.keys()))
+    escolha = st.sidebar.selectbox(
+        "Escolha uma página:",
+        list({
+            "1 - Análise 2024": page_analyse_2024,
+            "2 - Análise 2025": page_analyse_2025
+        }.keys())
+    )
     
     # Executa a página selecionada
     if escolha == "1 - Análise 2024":
         page_analyse_2024()
+    elif escolha == "2 - Análise 2025":
+        page_analyse_2025()
 
 if __name__ == "__main__":
     main()

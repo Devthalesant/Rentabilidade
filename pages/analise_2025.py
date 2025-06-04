@@ -7,14 +7,14 @@ import streamlit as st
 from Functions.vmb import criando_df_final_Rentabilidade
 from Functions.dictionaries import obter_dicionarios
 
-def page_analyse_2024():
+def page_analyse_2025():
         # Carrega o df
         df_final = criando_df_final_Rentabilidade(
-            "Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv",
-            "Bases/Custos Fixos/2024/CF-txSala.xlsx"
+            "Bases/Venda Mesal Bruta/2025/vmb_2025_concat.csv",
+            "Bases/Custos Fixos/2025/CF-txSala.xlsx"
         )
         
-        st.title("🌟 Análise de Rentabilidade 2024")
+        st.title("🌟 Análise de Rentabilidade 2025")
         
         unidades_options = [
             "TODAS COMPILADAS", "ALPHAVILLE", "CAMPINAS", "COPACABANA", "GUARULHOS",

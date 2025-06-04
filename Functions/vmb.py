@@ -82,6 +82,8 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     vmb_concat['Custo Direto Total'] = vmb_concat['Custo Direto'] * vmb_concat['Quantidade']
 
     vmb_concat['Valor unitário'] = vmb_concat['Valor liquido item'] / vmb_concat['Quantidade']
+    
+    vmb_concat["Valor tabela total"] = vmb_concat['Valor tabela item'] * vmb_concat['Quantidade']
 
     #dropndo colunad não utilizadas mais
     vmb_concat = vmb_concat.drop(columns=['Custo Direto'])
@@ -107,7 +109,7 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 
     vmb_concat_columns = ['ID orçamento', 'ID cliente', 'Status', 'Mês venda', 'Unidade',
                         'Valor líquido','Procedimento_padronizado', 'Quantidade',
-                        'Valor tabela item','Valor liquido item','Valor unitário','Tempo Total', 'Custo Produto',
+                        'Valor tabela item', 'Valor tabela total', 'Valor liquido item','Valor unitário','Tempo Total', 'Custo Produto',
                         'Custo Insumos', 'Custo Mod', 'Custo Direto Total', 'Custo Sobre Venda','Cortesia?']
 
 
