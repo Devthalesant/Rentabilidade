@@ -66,7 +66,8 @@ def page_analyse_2025():
             "Custo Sobre Venda" : "sum",
             "Custo Fixo" : "sum",
             "Custo Total" : "sum",
-            "Lucro": "sum"
+            "Lucro": "sum",
+            "Tempo Utilizado": "sum"
         })
         df_gp = df_gp.rename(columns={'Valor liquido item' : 'Receita Gerada','Valor unitário' : 'Preço Praticado'})
         
@@ -86,6 +87,8 @@ def page_analyse_2025():
         lucros = df_gp[df_gp['Lucro'] > 0].sort_values(by='Lucro', ascending=False)
         prejuizos = df_gp[df_gp['Lucro'] < 0].sort_values(by='Lucro')
         quantidade_total = df_gp['Quantidade'].sum()
+        tempo_total = df_gp['Tempo Utilizado'].sum() 
+
 
         # Exibir Receita Gerada Total
         if receita_total > custo_total:
@@ -101,12 +104,18 @@ def page_analyse_2025():
         if lucro_total >= 0:
             color = 'green'
             st.markdown(f"<h3 style='color:{color}; text-align:center;'>Lucro Total: R$ {lucro_total:,.2f}</h3>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color:black; text-align:center;'>Quantidade Total: {quantidade_total:,.0f}".replace(",", ".") + "</h3>", unsafe_allow_html=True)
 
         else:
             color = 'red'
             st.markdown(f"<h3 style='color:{color}; text-align:center;'>Prejuízo Total: R$ {lucro_total:,.2f}</h3>", unsafe_allow_html=True)
+        
+        # Exibir outros KPI´s
+        col1, col2 = st.columns(2)
+        with col1:
             st.markdown(f"<h3 style='color:black; text-align:center;'>Quantidade Total: {quantidade_total:,.0f}".replace(",", ".") + "</h3>", unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"<h3 style='color:black; text-align:center;'>Tempo Total(Min): {tempo_total:,.0f}".replace(",",".") + "</h3>", unsafe_allow_html=True)
+            
 
 
         format_dict = {
