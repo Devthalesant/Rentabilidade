@@ -10,12 +10,12 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 #"Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv"
 #"Bases/Custos Fixos/2024/CF-txSala.xlsx"
 
-    Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024 = obter_dicionarios()
+    Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024 , all_costs_2025 = obter_dicionarios()
 
     vmb_concat = pd.read_csv(vmb_concat_path,low_memory=False)
     custo_fixo = pd.read_excel(custo_fixo)
 
-    vmb_concat_columns = ['ID orçamento','ID cliente', 'Status','Mês venda',
+    vmb_concat_columns = ['ID orçamento','ID cliente', 'Status','Data venda','Mês venda',
                         'Unidade','Valor líquido','Procedimento','Quantidade',
                         'Valor tabela item', 'Valor liquido item']
 
@@ -23,13 +23,16 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 
     vmb_concat = vmb_concat[vmb_concat_columns]
 
+    #tratando a coluna de datas: 
+    vmb_concat['Data venda'] = pd.to_datetime(vmb_concat['Data venda'], errors='coerce')
+    #Criando coluna de Ano:
+    vmb_concat['Ano de venda'] = vmb_concat['Data venda'].dt.year
+
     columns_to_fill_nan = ['Valor liquido item','Valor tabela item','Valor líquido']
 
     vmb_concat[columns_to_fill_nan] = vmb_concat[columns_to_fill_nan].fillna(0)
 
     vmb_concat = vmb_concat.loc[vmb_concat["Status"] == "Finalizado"]
-
-    vmb_concat['Unidade'].unique()
 
     # Tirando unidade que não contam e unidades que fecharam
 
@@ -67,11 +70,24 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     vmb_concat = vmb_concat.loc[vmb_concat['Procedimento_padronizado'] != "DEPILACAO"]
 
     # Colunas de custo: 
-    vmb_concat['Custo Produto'] = vmb_concat['Procedimento_padronizado'].map(lambda x: all_costs_2024.get(x, {}).get('CUSTO PRODUTO', 0))
-    vmb_concat['Custo Insumos'] = vmb_concat['Procedimento_padronizado'].map(lambda x: all_costs_2024.get(x, {}).get('CUSTO INSUMOS', 0))
-    vmb_concat['Custo Mod'] = vmb_concat['Procedimento_padronizado'].map(lambda x: all_costs_2024.get(x, {}).get('MOD', 0))
+    def get_cost(row, cost_type):
+        if row['Ano de venda'] == 2024:
+            return all_costs_2024.get(row['Procedimento_padronizado'], {}).get(cost_type, 0)
+        elif row['Ano de venda'] == 2025:
+            return all_costs_2025.get(row['Procedimento_padronizado'], {}).get(cost_type, 0)
+        else:
+            return 0
 
-    vmb_concat['Custo Direto'] = vmb_concat['Custo Produto'] + vmb_concat['Custo Insumos'] + vmb_concat['Custo Mod']
+    vmb_concat['Custo Produto'] = vmb_concat.apply(lambda row: get_cost(row, 'CUSTO PRODUTO'), axis=1)
+    vmb_concat['Custo Insumos'] = vmb_concat.apply(lambda row: get_cost(row, 'CUSTO INSUMOS'), axis=1)
+    vmb_concat['Custo Mod'] = vmb_concat.apply(lambda row: get_cost(row, 'MOD'), axis=1)
+
+    #multiplicando cada um dos custos pelo valor da quantidade:
+    vmb_concat['Custo Produto'] = vmb_concat['Custo Produto'] * vmb_concat['Quantidade']
+    vmb_concat['Custo Insumos'] = vmb_concat['Custo Insumos'] * vmb_concat['Quantidade']
+    vmb_concat['Custo Mod'] = vmb_concat['Custo Mod'] * vmb_concat['Quantidade']
+
+    vmb_concat['Custo Direto Total'] = vmb_concat['Custo Produto'] + vmb_concat['Custo Insumos'] + vmb_concat['Custo Mod']
 
     vmb_concat["Quantidade"] = vmb_concat["Quantidade"].replace(".",",")
 
@@ -79,14 +95,9 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 
     vmb_concat['Quantidade'] = vmb_concat['Quantidade'].astype(int)
 
-    vmb_concat['Custo Direto Total'] = vmb_concat['Custo Direto'] * vmb_concat['Quantidade']
-
     vmb_concat['Valor unitário'] = vmb_concat['Valor liquido item'] / vmb_concat['Quantidade']
     
     vmb_concat["Valor tabela total"] = vmb_concat['Valor tabela item'] * vmb_concat['Quantidade']
-
-    #dropndo colunad não utilizadas mais
-    vmb_concat = vmb_concat.drop(columns=['Custo Direto'])
 
     vmb_concat["Cortesia?"] = (vmb_concat['Procedimento'].str.contains("CORTESIA", case=False) | (vmb_concat['Valor liquido item'] == 0))
 
@@ -107,7 +118,7 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 
     vmb_concat['Tempo Total'] = vmb_concat['Tempo Procedimento'] * vmb_concat["Quantidade"]
 
-    vmb_concat_columns = ['ID orçamento', 'ID cliente', 'Status', 'Mês venda', 'Unidade',
+    vmb_concat_columns = ['ID orçamento', 'ID cliente', 'Status', 'Mês venda', 'Ano de venda', 'Unidade',
                         'Valor líquido','Procedimento_padronizado', 'Quantidade',
                         'Valor tabela item', 'Valor tabela total', 'Valor liquido item','Valor unitário','Tempo Total', 'Custo Produto',
                         'Custo Insumos', 'Custo Mod', 'Custo Direto Total', 'Custo Sobre Venda','Cortesia?']
@@ -119,12 +130,14 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     vmb_concat = vmb_concat.rename(columns={"Tempo Total" : "Tempo Utilizado"})
 
     # Horas utilizadas por unidade: 
-
+    
     df_tempo_pago = vmb_concat.groupby(['Unidade']).agg({"Tempo Utilizado" : 'sum'}).reset_index()
 
-    df_tempo_pago
+    # Aqui fazer groupby por unidade tbm e mês? 
+    df_tempo_pago_mes = vmb_concat.groupby(['Unidade','Mês venda']).agg({"Tempo Utilizado" : 'sum'}).reset_index()
 
     print(df_tempo_pago)
+    print(df_tempo_pago_mes)
 
     #Merge da base CF com DF de tempo Utilizado
 
@@ -136,11 +149,6 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 
     df_merged_cf["Valor Tempo Ocioso"] = df_merged_cf['Tempo Ocioso'] * df_merged_cf['Taxa Sala (Min)']
 
-    #Colocar os valores em escala
-    #clumns_to_dividir = ["Custo Fixo",'Custo Fixo + Bko','Valor Tempo Utilizado','Tempo Ocioso',"Valor Tempo Ocioso"]
-
-    #df_merged_cf[clumns_to_dividir] = df_merged_cf[clumns_to_dividir] / 1000
-
     df_merged_cf_columns = ['Unidade', 'Custo Fixo', 'Custo Fixo + Bko','Meses Funcionando',
                             'Dias uteis', 'Hora/Dia', 'Salas','Minutos Disponivel', 
                             'Taxa Sala (Hr)', 'Taxa Sala (Min)','Tempo Utilizado',
@@ -151,7 +159,8 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     df_merged_cf["Taxa Ociosidade (Min)"] = df_merged_cf["Valor Tempo Ocioso"] / df_merged_cf['Tempo Utilizado']
 
     df_merged_cf
-
+    
+    # colocar mês aqui?
     df_taxa_sala_ociosidade = df_merged_cf.groupby(['Unidade']).agg({'Taxa Sala (Min)' : "sum","Taxa Ociosidade (Min)" : 'sum' }).reset_index()
 
     df_taxa_sala_ociosidade
