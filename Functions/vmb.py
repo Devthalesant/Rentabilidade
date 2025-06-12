@@ -83,6 +83,17 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     vmb_concat['Custo Mod'] = vmb_concat.apply(lambda row: get_cost(row, 'MOD'), axis=1)
 
     #multiplicando cada um dos custos pelo valor da quantidade:
+# Antes da multiplicação, converta as colunas para float
+    vmb_concat['Custo Produto'] = pd.to_numeric(
+        vmb_concat['Custo Produto'].astype(str).str.replace(',', '.').str.replace(r'[^\d\.]', '', regex=True),
+        errors='coerce'
+    )
+
+    vmb_concat['Quantidade'] = pd.to_numeric(
+        vmb_concat['Quantidade'].astype(str).str.replace(',', '.').str.replace(r'[^\d\.]', '', regex=True),
+        errors='coerce'
+    )
+
     vmb_concat['Custo Produto'] = vmb_concat['Custo Produto'] * vmb_concat['Quantidade']
     vmb_concat['Custo Insumos'] = vmb_concat['Custo Insumos'] * vmb_concat['Quantidade']
     vmb_concat['Custo Mod'] = vmb_concat['Custo Mod'] * vmb_concat['Quantidade']
