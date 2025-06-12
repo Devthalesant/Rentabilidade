@@ -50,11 +50,11 @@ def page_analyse_2024():
         
         # Filtro por preço
         if price != "Preço Praticado":
-            df = df.drop(columns=['Valor liquido item','Valor unitário','Custo Sobre Venda','Custo Total','Lucro'])
+            df = df.drop(columns=['Valor liquido item','Valor unitário','Custo Sobre Venda Final','Custo Total','Lucro'])
             df = df.rename(columns={'Valor tabela total': 'Valor liquido item'})
             df = df.rename(columns={'Valor tabela item': 'Valor unitário'})
-            df['Custo Sobre Venda'] = df['Valor liquido item'] * 0.2643
-            df['Custo Total'] = df['Custo Direto Total'] + df['Custo Sobre Venda'] + df['Custo Fixo']
+            df['Custo Sobre Venda Final'] = df['Valor liquido item'] * 0.2643
+            df['Custo Total'] = df['Custo Direto Total'] + df['Custo Sobre Venda Final'] + df['Custo Fixo']
             df['Lucro'] = df['Valor liquido item'] - df['Custo Total'] 
         
         # Agrupamento
@@ -63,7 +63,7 @@ def page_analyse_2024():
             "Valor unitário": "mean",
             "Valor liquido item" : "sum",
             "Custo Direto Total" : "sum",
-            "Custo Sobre Venda" : "sum",
+            "Custo Sobre Venda Final" : "sum",
             "Custo Fixo" : "sum",
             "Custo Total" : "sum",
             "Lucro": "sum",
@@ -73,7 +73,7 @@ def page_analyse_2024():
         
         # Calculating Contribuition Margin
         df_gp["Margem de Contribuição %"] = np.where(df_gp['Receita Gerada'] != 0,
-        (df_gp['Receita Gerada'] - df_gp['Custo Direto Total'] - df_gp['Custo Sobre Venda']) / df_gp['Receita Gerada'] * 100, 0)
+        (df_gp['Receita Gerada'] - df_gp['Custo Direto Total'] - df_gp['Custo Sobre Venda Final']) / df_gp['Receita Gerada'] * 100, 0)
 
         # Soma total de Lucro
         lucro_total = df_gp['Lucro'].sum()
@@ -121,7 +121,7 @@ def page_analyse_2024():
             'Preço Praticado': 'R$ {:,.2f}'.format,
             'Receita Gerada': 'R$ {:,.2f}'.format,
             'Custo Direto Total': 'R$ {:,.2f}'.format,
-            'Custo Sobre Venda': 'R$ {:,.2f}'.format,
+            'Custo Sobre Venda Final': 'R$ {:,.2f}'.format,
             'Custo Fixo': 'R$ {:,.2f}'.format,
             'Custo Total': 'R$ {:,.2f}'.format,
             'Margem de Contribuição %': '{:.2f}%'.format,

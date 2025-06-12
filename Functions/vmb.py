@@ -5,7 +5,7 @@ import glob
 from pathlib import Path
 from .dictionaries import obter_dicionarios
 
-def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo): 
+def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo_path): 
 # Essa Função Junta o VMB com a base de Custos Fixo formatada de forma exata e gera uma planilha niccolucci completa
 #"Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv"
 #"Bases/Custos Fixos/2024/CF-txSala.xlsx"
@@ -13,7 +13,10 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024 , all_costs_2025 = obter_dicionarios()
 
     vmb_concat = pd.read_csv(vmb_concat_path,low_memory=False)
-    custo_fixo = pd.read_excel(custo_fixo)
+    custo_fixo = pd.read_excel(custo_fixo_path)
+    df_taxas = pd.read_excel(custo_fixo_path,sheet_name="IMP + CART")
+    print("COLUNAS LOGO EM SEGUIDA")
+    print(df_taxas.columns)
 
     vmb_concat_columns = ['ID orçamento','ID cliente', 'Status','Data venda','Mês venda',
                         'Unidade','Valor líquido','Procedimento','Quantidade',
@@ -113,13 +116,22 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     vmb_concat["Cortesia?"] = (vmb_concat['Procedimento'].str.contains("CORTESIA", case=False) | (vmb_concat['Valor liquido item'] == 0))
 
     # Trazendo os Custos de Vendas para o DF:
-    cartao = 0.0818
-    imposto = 0.1425
-    comissao = 0.04
+    #cartao = 0.0818
+    #imposto = 0.1425
+    #comissao = 0.04
 
-    cmv = cartao + imposto + comissao
+    #cmv = cartao + imposto + comissao
 
-    vmb_concat['Custo Sobre Venda'] = vmb_concat['Valor liquido item'] * cmv
+    vmb_concat = vmb_concat.merge(
+    df_taxas[['Mês', 'Custo_Sobre_Venda']],
+    left_on='Mês venda',
+    right_on='Mês',
+    how='left'
+    )
+
+    vmb_concat.drop(columns=['Mês'], inplace=True)
+
+    vmb_concat['Custo Sobre Venda Final'] = vmb_concat['Valor liquido item'] * vmb_concat['Custo_Sobre_Venda']
 
     # Colocando Tempo dos procedimentos
     vmb_concat["Tempo Procedimento"] = vmb_concat['Procedimento_padronizado'].map(duration_dic)
@@ -132,7 +144,7 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     vmb_concat_columns = ['ID orçamento', 'ID cliente', 'Status', 'Mês venda', 'Ano de venda', 'Unidade',
                         'Valor líquido','Procedimento_padronizado', 'Quantidade',
                         'Valor tabela item', 'Valor tabela total', 'Valor liquido item','Valor unitário','Tempo Total', 'Custo Produto',
-                        'Custo Insumos', 'Custo Mod', 'Custo Direto Total', 'Custo Sobre Venda','Cortesia?']
+                        'Custo Insumos', 'Custo Mod', 'Custo Direto Total', 'Custo Sobre Venda Final','Cortesia?']
 
 
 
@@ -188,7 +200,7 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 
     receita_gerada = df_final['Valor liquido item'].sum()
 
-    df_final['Custo Total'] = df_final['Custo Fixo'] + df_final['Custo Direto Total'] + df_final['Custo Sobre Venda']
+    df_final['Custo Total'] = df_final['Custo Fixo'] + df_final['Custo Direto Total'] + df_final['Custo Sobre Venda Final']
 
     df_final['Lucro'] = df_final['Valor liquido item'] - df_final['Custo Total']
 
