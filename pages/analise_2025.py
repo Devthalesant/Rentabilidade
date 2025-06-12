@@ -12,7 +12,7 @@ def page_analyse_2025():
         # Carrega o df
         df_final = criando_df_final_Rentabilidade(
             "Bases/Venda Mesal Bruta/2025/vmb_2025_concat.csv",
-            "Bases/Custos Fixos/2025/CF-txSala.xlsx"
+            "Bases/Custos Fixos/2025/CF-txSala_Mensal.xlsx"
         )
         
         st.title("🌟 Análise de Rentabilidade 2025")

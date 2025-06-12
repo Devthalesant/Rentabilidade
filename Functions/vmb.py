@@ -131,7 +131,7 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 
     # Horas utilizadas por unidade: 
     
-    df_tempo_pago = vmb_concat.groupby(['Unidade']).agg({"Tempo Utilizado" : 'sum'}).reset_index()
+    df_tempo_pago = vmb_concat.groupby(['Unidade','Mês venda']).agg({"Tempo Utilizado" : 'sum'}).reset_index()
 
     # Aqui fazer groupby por unidade tbm e mês? 
     df_tempo_pago_mes = vmb_concat.groupby(['Unidade','Mês venda']).agg({"Tempo Utilizado" : 'sum'}).reset_index()
@@ -141,7 +141,9 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 
     #Merge da base CF com DF de tempo Utilizado
 
-    df_merged_cf = pd.merge(df_tempo_pago,custo_fixo,how='left')
+    df_merged_cf = pd.merge(df_tempo_pago,custo_fixo,how='left',
+        left_on=['Unidade', 'Mês venda'],
+        right_on=['Unidade', 'Mês'])
 
     df_merged_cf["Valor Tempo Utilizado"] = df_merged_cf['Tempo Utilizado'] * df_merged_cf['Taxa Sala (Min)']
 
@@ -149,27 +151,27 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
 
     df_merged_cf["Valor Tempo Ocioso"] = df_merged_cf['Tempo Ocioso'] * df_merged_cf['Taxa Sala (Min)']
 
-    df_merged_cf_columns = ['Unidade', 'Custo Fixo', 'Custo Fixo + Bko','Meses Funcionando',
-                            'Dias uteis', 'Hora/Dia', 'Salas','Minutos Disponivel', 
-                            'Taxa Sala (Hr)', 'Taxa Sala (Min)','Tempo Utilizado',
-                            'Valor Tempo Utilizado', 'Tempo Ocioso','Valor Tempo Ocioso']
+    df_merged_cf_columns = ['Unidade', 'Custo Fixo + Bko','Dias uteis', 'Hora/Dia','Mês',
+                            'Salas','Minutos Disponivel', 'Taxa Sala (Hr)', 'Taxa Sala (Min)',
+                            'Tempo Utilizado','Valor Tempo Utilizado', 'Tempo Ocioso','Valor Tempo Ocioso']
 
     df_merged_cf = df_merged_cf[df_merged_cf_columns]
 
     df_merged_cf["Taxa Ociosidade (Min)"] = df_merged_cf["Valor Tempo Ocioso"] / df_merged_cf['Tempo Utilizado']
 
     df_merged_cf
+
+    df_taxa_sala_ociosidade = df_merged_cf.groupby(['Unidade', 'Mês']).agg({
+        'Taxa Sala (Min)': 'first',
+        'Taxa Ociosidade (Min)': 'first'
+        }).reset_index()
     
-    # colocar mês aqui?
-    df_taxa_sala_ociosidade = df_merged_cf.groupby(['Unidade']).agg({'Taxa Sala (Min)' : "sum","Taxa Ociosidade (Min)" : 'sum' }).reset_index()
-
-    df_taxa_sala_ociosidade
-
     print(df_taxa_sala_ociosidade)
 
     ## Merge da base de Vendas concat com a tx sala e ociosidade - Base FInal para ANálise e Groupbys
 
-    df_final = pd.merge(vmb_concat,df_taxa_sala_ociosidade,how='left')
+    df_final = pd.merge(vmb_concat,df_taxa_sala_ociosidade,
+                        how='left',left_on=['Unidade', 'Mês venda'],right_on=['Unidade', 'Mês'])
 
     df_final["Custo Fixo"] = ((df_final['Tempo Utilizado']* df_final['Taxa Sala (Min)']) + (df_final['Tempo Utilizado']* df_final['Taxa Ociosidade (Min)']))
 
@@ -178,6 +180,10 @@ def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo):
     df_final['Custo Total'] = df_final['Custo Fixo'] + df_final['Custo Direto Total'] + df_final['Custo Sobre Venda']
 
     df_final['Lucro'] = df_final['Valor liquido item'] - df_final['Custo Total']
+
+    df_final['Mês venda'].unique()
+
+    df_final.drop(columns='Mês',inplace=True)
 
     print(df_final)
 
