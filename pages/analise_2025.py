@@ -127,6 +127,7 @@ def page_analyse_2025():
             'Custo Fixo': 'R$ {:,.2f}'.format,
             'Custo Total': 'R$ {:,.2f}'.format,
             'Margem de Contribuição %': '{:.2f}%'.format,
+            'Receita_total_clientes' : 'R$ {:,.2f}'.format,
         }
 
         # Procedimentos com maior lucro
@@ -194,6 +195,45 @@ def page_analyse_2025():
         pd.set_option("styler.render.max_elements", df_database.size)
         st.dataframe(df_database)
 
+        st.subheader("Procedmentos Agregados - Prejuízo")
+        # Identifica procedimentos com prejuízo consolidado (usando df_gp)
+        procedimentos_prejuizo = prejuizos.index.tolist()  # Pega os nomes dos procedimentos com Lucro < 0
+
+        # Filtra a base original para pegar apenas clientes que compraram esses procedimentos
+        df_clientes_preju = df_database[df_database["Procedimento_padronizado"].isin(procedimentos_prejuizo)]
+
+        # Agora, para cada procedimento problemático, buscamos TODOS os orçamentos desses clientes
+        resultados = []
+        for procedimento in procedimentos_prejuizo:
+            # Pega os clientes que compraram esse procedimento
+            clientes = df_clientes_preju[df_clientes_preju["Procedimento_padronizado"] == procedimento]["ID cliente"].unique()
+            
+            # Filtra TODOS os orçamentos desses clientes (incluindo outros procedimentos)
+            df_clientes = df_database[df_database["ID cliente"].isin(clientes)]
+            
+            # Calcula métricas
+            qtd_orcamentos = df_clientes["ID orçamento"].nunique()
+            receita_total = df_clientes["Valor liquido item"].sum()
+            
+            # Pega outros procedimentos comprados por esses clientes (excluindo o atual)
+            outros_procedimentos = (
+                df_clientes[df_clientes["Procedimento_padronizado"] != procedimento]
+                ["Procedimento_padronizado"]
+                .value_counts()
+                .to_dict()
+            )
+            
+            resultados.append({
+                "Procedimento_padronizado": procedimento,
+                "Qtd_orcamentos_clientes": qtd_orcamentos,
+                "Receita_total_clientes": receita_total,
+                "Outros_procedimentos_comprados": outros_procedimentos
+            })
+
+        # Cria o DataFrame final
+        df_analise_preju_final = pd.DataFrame(resultados)
+        st.dataframe(df_analise_preju_final.style.format(format_dict))
+
         def to_excel_bytes(df):
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -203,6 +243,7 @@ def page_analyse_2025():
         lucros_excel = to_excel_bytes(lucros)
         prejuizos_excel = to_excel_bytes(prejuizos)
         base_excel = to_excel_bytes(df_database)
+        preju_agregados_excel = to_excel_bytes(df_analise_preju_final)
 
         st.download_button(
             label="Baixar Dataframe de Procedimentos com Lucro",
@@ -225,3 +266,9 @@ def page_analyse_2025():
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
+        st.download_button(
+            label="Baixar Dataframe de Procedmentos Agregados - Prejuízo",
+            data=preju_agregados_excel,
+            file_name="Procedimentos_agregados_prejuízo.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
