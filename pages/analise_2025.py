@@ -19,7 +19,7 @@ def page_analyse_2025():
         
         unidades_options = [
             "TODAS COMPILADAS", "ALPHAVILLE", "CAMPINAS", "COPACABANA", "GUARULHOS",
-            "JARDINS", "LAPA", "LONDRINA", "MOOCA", "MOEMA", "OSASCO", "IPIRANGA",
+            "JARDINS", "LAPA", "LONDRINA", "MOOCA", "MOEMA", "OSASCO", "IPIRANGA","ITAIM",
             "SÃO BERNARDO", "SANTO AMARO","SOROCABA", "SANTOS", "TIJUCA", "TATUAPÉ", "TUCURUVI",
             "VILA MASCOTE"
         ]
@@ -196,11 +196,11 @@ def page_analyse_2025():
         st.dataframe(df_database)
 
         st.subheader("Procedmentos Agregados - Prejuízo")
-        # Identifica procedimentos com prejuízo consolidado (usando df_gp)
+        # Identifica procedimentos com prejuízo consolidado (usando df_database)
         procedimentos_prejuizo = prejuizos.index.tolist()  # Pega os nomes dos procedimentos com Lucro < 0
 
         # Filtra a base original para pegar apenas clientes que compraram esses procedimentos
-        df_clientes_preju = df_database[df_database["Procedimento_padronizado"].isin(procedimentos_prejuizo)]
+        df_clientes_preju = df[df["Procedimento_padronizado"].isin(procedimentos_prejuizo)]
 
         # Agora, para cada procedimento problemático, buscamos TODOS os orçamentos desses clientes
         resultados = []
@@ -209,7 +209,7 @@ def page_analyse_2025():
             clientes = df_clientes_preju[df_clientes_preju["Procedimento_padronizado"] == procedimento]["ID cliente"].unique()
             
             # Filtra TODOS os orçamentos desses clientes (incluindo outros procedimentos)
-            df_clientes = df_database[df_database["ID cliente"].isin(clientes)]
+            df_clientes = df[df["ID cliente"].isin(clientes)]
             
             # Calcula métricas
             qtd_orcamentos = df_clientes["ID orçamento"].nunique()
