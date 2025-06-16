@@ -234,6 +234,32 @@ def page_analyse_2025():
         df_analise_preju_final = pd.DataFrame(resultados)
         st.dataframe(df_analise_preju_final.style.format(format_dict))
 
+## Dataframe por unidade:
+        df_groupby_unidade = df.groupby(["Unidade"]).agg({"Valor liquido item" : "sum","Custo Direto Total" : "sum",
+                                                        "Custo Total" : "sum"}).reset_index()
+        
+        df_groupby_unidade["Margem Bruta"] = df_groupby_unidade["Valor liquido item"] - df_groupby_unidade["Custo Direto Total"]
+        df_groupby_unidade["Margem Bruta %"] = df_groupby_unidade["Margem Bruta"] / df_groupby_unidade["Valor liquido item"] * 100
+        df_groupby_unidade["EBITDA"] = df_groupby_unidade["Valor liquido item"] - df_groupby_unidade["Custo Total"]
+        df_groupby_unidade["EBITDA %"] = df_groupby_unidade["EBITDA"] / df_groupby_unidade["Valor liquido item"] * 100
+
+        df_groupby_unidade.rename(columns={"Valor liquido item" : "Receita Total"},inplace=True)
+
+        # reorganizing columns: 
+        df_groupby_unidade_columns = ["Unidade","Receita Total","Margem Bruta","Margem Bruta %","EBITDA","EBITDA %"]
+        df_groupby_unidade = df_groupby_unidade[df_groupby_unidade_columns]
+
+        # Formating the columns
+        format_gp_unidade_dict = {'Margem Bruta %': '{:.2f}%'.format,
+                                  'Margem Bruta': 'R$ {:,.2f}'.format,
+                                  'EBITDA %': '{:.2f}%'.format,
+                                  'EBITDA': 'R$ {:,.2f}'.format,
+                                  'Receita Total': 'R$ {:,.2f}'.format}
+        
+        st.subheader("Análise por Unidade :")
+
+        st.dataframe(df_groupby_unidade.style.format(format_gp_unidade_dict))
+
         def to_excel_bytes(df):
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
