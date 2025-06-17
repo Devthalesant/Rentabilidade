@@ -189,52 +189,69 @@ def page_analyse_2025():
                 "</div>", unsafe_allow_html=True
             )
 
-        # Exibir o Dataframe de Base: 
-        st.subheader("Base de Dados Utilizada")
-        # Ajusta o limite de células do Styler para evitar erro de excesso de células
-        pd.set_option("styler.render.max_elements", df_database.size)
-        st.dataframe(df_database)
-
         st.subheader("Procedmentos Agregados - Prejuízo")
-        # Identifica procedimentos com prejuízo consolidado (usando df_database)
-        procedimentos_prejuizo = prejuizos.index.tolist()  # Pega os nomes dos procedimentos com Lucro < 0
+        # Filtrar procedimentos com prejuízo
+        df_procedimentos_com_prejuizo = df.groupby("Procedimento_padronizado").agg({"Lucro" : "sum"}).reset_index()
+        df_procedimentos_com_prejuizo = df_procedimentos_com_prejuizo.loc[df_procedimentos_com_prejuizo['Lucro'] < 0]
 
-        # Filtra a base original para pegar apenas clientes que compraram esses procedimentos
-        df_clientes_preju = df[df["Procedimento_padronizado"].isin(procedimentos_prejuizo)]
+        lista_procedimentos_prejuizo = df_procedimentos_com_prejuizo['Procedimento_padronizado'].unique().tolist()
 
-        # Agora, para cada procedimento problemático, buscamos TODOS os orçamentos desses clientes
-        resultados = []
-        for procedimento in procedimentos_prejuizo:
-            # Pega os clientes que compraram esse procedimento
-            clientes = df_clientes_preju[df_clientes_preju["Procedimento_padronizado"] == procedimento]["ID cliente"].unique()
-            
-            # Filtra TODOS os orçamentos desses clientes (incluindo outros procedimentos)
-            df_clientes = df[df["ID cliente"].isin(clientes)]
-            
-            # Calcula métricas
-            qtd_orcamentos = df_clientes["ID orçamento"].nunique()
-            receita_total = df_clientes["Valor liquido item"].sum()
-            
-            # Pega outros procedimentos comprados por esses clientes (excluindo o atual)
-            outros_procedimentos = (
-                df_clientes[df_clientes["Procedimento_padronizado"] != procedimento]
-                ["Procedimento_padronizado"]
-                .value_counts()
-                .to_dict()
-            )
-            
-            resultados.append({
-                "Procedimento_padronizado": procedimento,
-                "Qtd_orcamentos_clientes": qtd_orcamentos,
-                "Receita_total_clientes": receita_total,
-                "Outros_procedimentos_comprados": outros_procedimentos
-            })
+        df_prejuizo = df[df['Procedimento_padronizado'].isin(lista_procedimentos_prejuizo)].copy()
 
-        # Cria o DataFrame final
-        df_analise_preju_final = pd.DataFrame(resultados)
-        st.dataframe(df_analise_preju_final.style.format(format_dict))
+        # Agrupar por procedimento e calcular métricas básicas
+        df_agrupado = df.groupby('Procedimento_padronizado').agg({
+            'Valor liquido item': 'sum',  # Receita do procedimento com prejuízo
+            'Lucro': 'sum'                # Prejuízo total do procedimento
+        }).reset_index()
 
-## Dataframe por unidade:
+        # Lista de clientes que compraram cada procedimento com prejuízo
+        clientes_por_procedimento = df_prejuizo.groupby('Procedimento_padronizado')['ID cliente'].unique().reset_index()
+        clientes_por_procedimento.columns = ['Procedimento_padronizado', 'Clientes']
+
+        # Juntar com o df_agrupado
+        df_agrupado = df_agrupado.merge(clientes_por_procedimento, on='Procedimento_padronizado')
+
+        # Função para calcular receita e custo total dos clientes
+        def calcular_totais_por_cliente(lista_clientes):
+            clientes_mask = df['ID cliente'].isin(lista_clientes)
+            receita_total = df.loc[clientes_mask, 'Valor liquido item'].sum()
+            custo_total = df.loc[clientes_mask, 'Custo Total'].sum()
+            lucro_total = receita_total - custo_total
+            return pd.Series([receita_total, custo_total, lucro_total])
+
+        # Aplicar a função para cada procedimento
+        df_agrupado[['Receita Total Clientes', 'Custo Total Clientes', 'Lucro Agregado']] = \
+            df_agrupado['Clientes'].apply(calcular_totais_por_cliente)
+
+        # Ordenar por maior prejuízo (menor lucro)
+        df_agrupado = df_agrupado.sort_values('Lucro')
+
+        # Renomear colunas para clareza
+        df_agrupado = df_agrupado.rename(columns={
+            'Valor liquido item': 'Receita Procedimento',
+            'Lucro': 'Prejuízo Procedimento'
+        })
+
+        # Selecionar e ordenar colunas
+        df_analise_preju_final = df_agrupado[[
+            'Procedimento_padronizado',
+            'Receita Procedimento',
+            'Prejuízo Procedimento',
+            'Receita Total Clientes',
+            'Custo Total Clientes',
+            'Lucro Agregado'
+        ]]
+
+        # Formatar valores monetários
+        for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
+                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro Agregado']:
+            df_analise_preju_final[col] = df_analise_preju_final[col].apply(lambda x: f"R${x:,.2f}")
+
+        # Resetar índice
+        df_analise_preju_final.reset_index(drop=True, inplace=True)
+        st.dataframe(df_analise_preju_final)
+        
+        ## Dataframe por unidade:
         df_groupby_unidade = df.groupby(["Unidade"]).agg({"Valor liquido item" : "sum","Custo Direto Total" : "sum",
                                                         "Custo Total" : "sum"}).reset_index()
         
@@ -249,6 +266,8 @@ def page_analyse_2025():
         df_groupby_unidade_columns = ["Unidade","Receita Total","Margem Bruta","Margem Bruta %","EBITDA","EBITDA %"]
         df_groupby_unidade = df_groupby_unidade[df_groupby_unidade_columns]
 
+        df_groupby_unidade = df_groupby_unidade.sort_values(by=["EBITDA %"],ascending=False)        
+
         # Formating the columns
         format_gp_unidade_dict = {'Margem Bruta %': '{:.2f}%'.format,
                                   'Margem Bruta': 'R$ {:,.2f}'.format,
@@ -258,7 +277,18 @@ def page_analyse_2025():
         
         st.subheader("Análise por Unidade :")
 
-        st.dataframe(df_groupby_unidade.style.format(format_gp_unidade_dict))
+        st.dataframe(
+            df_groupby_unidade.style
+                .format(format_gp_unidade_dict)
+                .background_gradient(
+                    cmap='RdYlGn',  # Escala de cor original
+                    subset=['EBITDA %'],  # Apenas na coluna EBITDA %
+                    vmin=-50,  # Valor mínimo (ajuste conforme seus dados)
+                    vmax=50    # Valor máximo (ajuste conforme seus dados)
+                )   
+                .apply(lambda x: ['color: red' if x < 0 else 'color: green' for x in df_groupby_unidade['EBITDA %']], 
+                    subset=['EBITDA %'])
+        )
 
         def to_excel_bytes(df):
             output = io.BytesIO()
@@ -270,6 +300,7 @@ def page_analyse_2025():
         prejuizos_excel = to_excel_bytes(prejuizos)
         base_excel = to_excel_bytes(df_database)
         preju_agregados_excel = to_excel_bytes(df_analise_preju_final)
+        analise_unidades = to_excel_bytes(df_groupby_unidade)
 
         st.download_button(
             label="Baixar Dataframe de Procedimentos com Lucro",
@@ -296,5 +327,12 @@ def page_analyse_2025():
             label="Baixar Dataframe de Procedmentos Agregados - Prejuízo",
             data=preju_agregados_excel,
             file_name="Procedimentos_agregados_prejuízo.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        
+        st.download_button(
+            label="Baixar Dataframe de Análise Ebitda por Unidade",
+            data=analise_unidades,
+            file_name="Análise_ebitda_Unidades.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )

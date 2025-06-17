@@ -187,12 +187,6 @@ def page_analyse_2024():
                 "</div>", unsafe_allow_html=True
             )
 
-        # Exibir o Dataframe de Base: 
-        st.subheader("Base de Dados Utilizada")
-        # Ajusta o limite de células do Styler para evitar erro de excesso de células
-        pd.set_option("styler.render.max_elements", df_database.size)
-        st.dataframe(df_database)
-
         st.subheader("Procedmentos Agregados - Prejuízo")
         # Identifica procedimentos com prejuízo consolidado (usando df_gp)
         procedimentos_prejuizo = prejuizos.index.tolist()  # Pega os nomes dos procedimentos com Lucro < 0
@@ -247,6 +241,8 @@ def page_analyse_2024():
         df_groupby_unidade_columns = ["Unidade","Receita Total","Margem Bruta","Margem Bruta %","EBITDA","EBITDA %"]
         df_groupby_unidade = df_groupby_unidade[df_groupby_unidade_columns]
 
+        df_groupby_unidade = df_groupby_unidade.sort_values(by=["EBITDA %"],ascending=False)
+
         # Formating the columns
         format_gp_unidade_dict = {'Margem Bruta %': '{:.2f}%'.format,
                                   'Margem Bruta': 'R$ {:,.2f}'.format,
@@ -256,7 +252,19 @@ def page_analyse_2024():
         
         st.subheader("Análise por Unidade :")
 
-        st.dataframe(df_groupby_unidade.style.format(format_gp_unidade_dict))
+# Por esta versão com mapa de calor:
+        st.dataframe(
+            df_groupby_unidade.style
+                .format(format_gp_unidade_dict)
+                .background_gradient(
+                    cmap='RdYlGn',  # Escala de cor original
+                    subset=['EBITDA %'],  # Apenas na coluna EBITDA %
+                    vmin=-50,  # Valor mínimo (ajuste conforme seus dados)
+                    vmax=50    # Valor máximo (ajuste conforme seus dados)
+                )
+                .apply(lambda x: ['color: red' if x < 0 else 'color: green' for x in df_groupby_unidade['EBITDA %']], 
+                    subset=['EBITDA %'])
+        )
 
 
         # Opção para o usuário baixar os Dataframes exibidos em Excel:
@@ -272,6 +280,7 @@ def page_analyse_2024():
         prejuizos_excel = to_excel_bytes(prejuizos)
         base_excel = to_excel_bytes(df_database)
         preju_agregados_excel = to_excel_bytes(df_analise_preju_final)
+        analise_unidades = to_excel_bytes(df_groupby_unidade)
 
         st.download_button(
             label="Baixar Dataframe de Procedimentos com Lucro",
@@ -298,5 +307,12 @@ def page_analyse_2024():
             label="Baixar Dataframe de Procedmentos Agregados - Prejuízo",
             data=preju_agregados_excel,
             file_name="Procedimentos_agregados_prejuízo.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        
+        st.download_button(
+            label="Baixar Dataframe de Análise Ebitda por Unidade",
+            data=analise_unidades,
+            file_name="Análise_ebitda_Unidades.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
