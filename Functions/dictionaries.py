@@ -528,7 +528,7 @@ def obter_dicionarios():
     'PRÓ-FIT': '00:15:00',
     'PRÓ-LIPO': '00:15:00',
     'PRÓ-MESO': '00:30:00',
-    'PRÓ-SÉRUM': '00:05:00',
+    'PRÓ-SÉRUM': '00:01:00',
     'PÓS TRATAMENTO': '00:15:00',
     'RADIESSE': '00:30:00',
     'RADIOFREQUÊNCIA': '00:30:00',

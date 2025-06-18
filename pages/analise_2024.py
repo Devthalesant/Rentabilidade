@@ -297,49 +297,51 @@ def page_analyse_2024():
                     subset=['EBITDA %'])
         )
 
-        def to_excel_bytes(df):
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                df.to_excel(writer, index=True)
-            return output.getvalue()
+        donwloads = st.button("Clique aqui para Ver as opções de Donwloads!")
+        if donwloads:
+            def to_excel_bytes(df):
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    df.to_excel(writer, index=True)
+                return output.getvalue()
 
-        lucros_excel = to_excel_bytes(lucros)
-        prejuizos_excel = to_excel_bytes(prejuizos)
-        base_excel = to_excel_bytes(df_database)
-        preju_agregados_excel = to_excel_bytes(df_analise_preju_final)
-        analise_unidades = to_excel_bytes(df_groupby_unidade)
+            lucros_excel = to_excel_bytes(lucros)
+            prejuizos_excel = to_excel_bytes(prejuizos)
+            base_excel = to_excel_bytes(df_database)
+            preju_agregados_excel = to_excel_bytes(df_analise_preju_final)
+            analise_unidades = to_excel_bytes(df_groupby_unidade)
 
-        st.download_button(
-            label="Baixar Dataframe de Procedimentos com Lucro",
-            data=lucros_excel,
-            file_name="lucros_procedimentos.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+            st.download_button(
+                label="Baixar Dataframe de Procedimentos com Lucro",
+                data=lucros_excel,
+                file_name="lucros_procedimentos.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
-        st.download_button(
-            label="Baixar Dataframe de Procedimentos com Prejuízo",
-            data=prejuizos_excel,
-            file_name="prejuizos_procedimentos.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+            st.download_button(
+                label="Baixar Dataframe de Procedimentos com Prejuízo",
+                data=prejuizos_excel,
+                file_name="prejuizos_procedimentos.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
-        st.download_button(
-            label="Baixar Base de Dados Completa",
-            data=base_excel,
-            file_name="base_dados_completa.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+            st.download_button(
+                label="Baixar Base de Dados Completa",
+                data=base_excel,
+                file_name="base_dados_completa.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
-        st.download_button(
-            label="Baixar Dataframe de Procedmentos Agregados - Prejuízo",
-            data=preju_agregados_excel,
-            file_name="Procedimentos_agregados_prejuízo.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        
-        st.download_button(
-            label="Baixar Dataframe de Análise Ebitda por Unidade",
-            data=analise_unidades,
-            file_name="Análise_ebitda_Unidades.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+            st.download_button(
+                label="Baixar Dataframe de Procedmentos Agregados - Prejuízo",
+                data=preju_agregados_excel,
+                file_name="Procedimentos_agregados_prejuízo.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            
+            st.download_button(
+                label="Baixar Dataframe de Análise Ebitda por Unidade",
+                data=analise_unidades,
+                file_name="Análise_ebitda_Unidades.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
