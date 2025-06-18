@@ -68,12 +68,14 @@ def page_analyse_2024():
             "Custo Total" : "sum",
             "Lucro": "sum",
             "Tempo Utilizado": "sum"
-        })
+        }).reset_index()
         df_gp = df_gp.rename(columns={'Valor liquido item' : 'Receita Gerada','Valor unitário' : 'Preço Praticado'})
         
         # Calculating Contribuition Margin
         df_gp["Margem de Contribuição %"] = np.where(df_gp['Receita Gerada'] != 0,
         (df_gp['Receita Gerada'] - df_gp['Custo Direto Total'] - df_gp['Custo Sobre Venda Final']) / df_gp['Receita Gerada'] * 100, 0)
+
+        df_gp["Lucro %"] = df_gp["Lucro"] / df_gp["Receita Gerada"] * 100
 
         # Soma total de Lucro
         lucro_total = df_gp['Lucro'].sum()
@@ -81,7 +83,11 @@ def page_analyse_2024():
 
         receita_total = df_gp['Receita Gerada'].sum()
         custo_total = df_gp['Custo Total'].sum()
-        
+
+        procedimentos_df_columns = ["Procedimento_padronizado","Quantidade","Preço Praticado","Receita Gerada","Custo Direto Total",
+                                    "Custo Sobre Venda Final", "Margem de Contribuição %","Custo Fixo","Custo Total", "Lucro", "Lucro %", "Tempo Utilizado"]  
+
+        df_gp = df_gp[procedimentos_df_columns]
 
         # Separar procedimentos com lucro e prejuízo
         lucros = df_gp[df_gp['Lucro'] > 0].sort_values(by='Lucro', ascending=False)
@@ -128,6 +134,7 @@ def page_analyse_2024():
             'Custo Total': 'R$ {:,.2f}'.format,
             'Margem de Contribuição %': '{:.2f}%'.format,
             'Receita_total_clientes' : 'R$ {:,.2f}'.format,
+            'Lucro %' : '% {:,.2f}'.format,
         }
 
         # Procedimentos com maior lucro
