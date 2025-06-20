@@ -10,7 +10,6 @@ import io
 
 def page_analyse_2025():
         # Carrega o df
-        
         df_final = criando_df_final_Rentabilidade()
         
         st.title("🌟 Análise de Rentabilidade 2025")

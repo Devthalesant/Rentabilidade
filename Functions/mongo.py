@@ -2,17 +2,9 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import pandas as pd
 import streamlit as st
-import pymongo
 
 uri = st.secrets.mongo_credentials.uri
 
-
-# Aqui você cria o cliente uma única vez
-client = pymongo.MongoClient(
-    uri,
-    tls=True,
-    serverSelectionTimeoutMS=30000
-)
 
 def subir_dados_mongodb(database_name,collection_name,dados):
 
@@ -29,14 +21,21 @@ def subir_dados_mongodb(database_name,collection_name,dados):
 
     return insert_result
 
-def pegar_dados_mongodb(database_name, collection_name, query=None):
+def pegar_dados_mongodb(database_name,collection_name, query=None):
+    client = MongoClient(uri)
     db = client[database_name]
     collection = db[collection_name]
+
+    # Use empty query if none is provided
     if query is None:
         query = {}
+
+    # Apply the query to filter documents
     filtered_documents = collection.find(query)
+
     data = list(filtered_documents)
     df = pd.DataFrame(data).drop(columns=['_id'], errors='ignore')
+
     return df
 
 def deletar_todos_documentos(database_name, collection_name, query=None):
