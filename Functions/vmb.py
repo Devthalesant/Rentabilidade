@@ -8,7 +8,10 @@ from Functions.mongo import *
 import toml
 
 # Carrega o arquivo secrets.toml
-secrets = toml.load('secrets.toml')
+
+caminho_secrets = '.streamlit/secrets.toml'
+
+secrets = toml.load(caminho_secrets)
 
 # Acessa a URI
 uri = secrets['mongo_credentials']['uri']
