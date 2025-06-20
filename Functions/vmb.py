@@ -4,19 +4,22 @@ import os
 import glob
 from pathlib import Path
 from .dictionaries import obter_dicionarios
+from mongo import *
 
 def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo_path): 
 # Essa Função Junta o VMB com a base de Custos Fixo formatada de forma exata e gera uma planilha niccolucci completa
 #"Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv"
 #"Bases/Custos Fixos/2024/CF-txSala.xlsx"
 
+    custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custos_fixos_2025")
+    vmb_concat = pegar_dados_mongodb("rentabilidade_anual","Venda Mensal Bruta")
+    df_taxas = pegar_dados_mongodb("rentabilidade_anual","impostos_taxas_2025")
+
     Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024 , all_costs_2025 = obter_dicionarios()
 
-    vmb_concat = pd.read_csv(vmb_concat_path,low_memory=False)
-    custo_fixo = pd.read_excel(custo_fixo_path)
-    df_taxas = pd.read_excel(custo_fixo_path,sheet_name="IMP + CART")
-    print("COLUNAS LOGO EM SEGUIDA")
-    print(df_taxas.columns)
+    #vmb_concat = pd.read_csv(vmb_concat_path,low_memory=False)
+    #custo_fixo = pd.read_excel(custo_fixo_path)
+    #df_taxas = pd.read_excel(custo_fixo_path,sheet_name="IMP + CART")
 
     vmb_concat_columns = ['ID orçamento','ID cliente', 'Status','Data venda','Mês venda',
                         'Unidade','Valor líquido','Procedimento','Quantidade',

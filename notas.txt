@@ -43,3 +43,20 @@ git add .
 git commit -m "Primeiro commit do projeto"
 git remote add origin https://github.com/SEU_USERNAME/NOME_DO_REPOSITORIO.git
 git push -u origin main ou master
+
+__init__.py arquvio em branco que permite importar os módulos das abas que estou...
+
+para colocar as coisas que o Streamlit terá acesso mas os usuparios não: 
+    Criar pasta .streamlit 
+        file chamado secrets.toml
+
+
+
+no secrets: 
+ colocar : 
+    [mongo_credentials]
+    uri = "mongodb+srv://thalesprocorpoestetica:Proc%402025@cluster0.tkcrpgj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
+na aba com as funções de requsição do mongo : 
+    Import Streamlit as st 
+    uri = st.secrets.mongo_credentials.uri
