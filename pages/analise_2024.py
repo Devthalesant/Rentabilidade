@@ -10,10 +10,7 @@ import io
 
 def page_analyse_2024():
         # Carrega o df
-        df_final = criando_df_final_Rentabilidade(
-            "Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv",
-            "Bases/Custos Fixos/2024/CF-txSala.xlsx"
-        )
+        df_final = criando_df_final_Rentabilidade()
         
         st.title("🌟 Análise de Rentabilidade 2024")
         
