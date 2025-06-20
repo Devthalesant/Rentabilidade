@@ -5,16 +5,7 @@ import glob
 from pathlib import Path
 from .dictionaries import obter_dicionarios
 from Functions.mongo import *
-import toml
 
-# Carrega o arquivo secrets.toml
-
-caminho_secrets = '.streamlit/secrets.toml'
-
-secrets = toml.load(caminho_secrets)
-
-# Acessa a URI
-uri = secrets['mongo_credentials']['uri']
 
 def criando_df_final_Rentabilidade(): 
 # Essa Função Junta o VMB com a base de Custos Fixo formatada de forma exata e gera uma planilha niccolucci completa
