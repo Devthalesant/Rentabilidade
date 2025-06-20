@@ -9,6 +9,7 @@ from Functions.dictionaries import obter_dicionarios
 from pages.analise_2024 import page_analyse_2024
 from pages.auth import login
 from pages.analise_2025 import page_analyse_2025
+from pages.teste_mongo import teste_mongo
 
 def main():
     # Sessão
@@ -27,7 +28,8 @@ def main():
         "Escolha uma página:",
         list({
             "1 - Análise 2024": page_analyse_2024,
-            "2 - Análise 2025": page_analyse_2025
+            "2 - Análise 2025": page_analyse_2025,
+            "3 - testando" : teste_mongo,
         }.keys())
     )
     
@@ -36,6 +38,8 @@ def main():
         page_analyse_2024()
     elif escolha == "2 - Análise 2025":
         page_analyse_2025()
+    elif escolha == "3 - testando":
+        teste_mongo()
 
 if __name__ == "__main__":
     main()
