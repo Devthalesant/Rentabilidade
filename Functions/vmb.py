@@ -4,7 +4,7 @@ import os
 import glob
 from pathlib import Path
 from .dictionaries import obter_dicionarios
-from mongo import *
+from Functions.mongo import *
 
 def criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo_path): 
 # Essa Função Junta o VMB com a base de Custos Fixo formatada de forma exata e gera uma planilha niccolucci completa
