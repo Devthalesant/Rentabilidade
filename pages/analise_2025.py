@@ -7,16 +7,10 @@ import streamlit as st
 from Functions.vmb import criando_df_final_Rentabilidade
 from Functions.dictionaries import obter_dicionarios
 import io
-import pymongo
 
 def page_analyse_2025():
         # Carrega o df
-
-        client = pymongo.MongoClient(
-            uri,
-            tls=True,
-            serverSelectionTimeoutMS=30000
-        )
+        
         df_final = criando_df_final_Rentabilidade()
         
         st.title("🌟 Análise de Rentabilidade 2025")
