@@ -199,7 +199,7 @@ def page_analyse_2025():
                 "</div>", unsafe_allow_html=True
             )
 
-        st.subheader("Procedimentos Agregados - Prejuízo")
+        st.subheader("Procedmentos Agregados - Prejuízo")
         # Filtrar procedimentos com prejuízo
         df_procedimentos_com_prejuizo = df.groupby("Procedimento_padronizado").agg({"Lucro" : "sum"}).reset_index()
         df_procedimentos_com_prejuizo = df_procedimentos_com_prejuizo.loc[df_procedimentos_com_prejuizo['Lucro'] < 0]
@@ -208,73 +208,64 @@ def page_analyse_2025():
 
         df_prejuizo = df[df['Procedimento_padronizado'].isin(lista_procedimentos_prejuizo)].copy()
 
-        # Obter todos os clientes que compraram procedimentos com prejuízo
-        clientes_prejuizo = df_prejuizo['ID cliente'].unique()
-
-        # Filtrar todas as compras desses clientes
-        df_clientes_completo = df[df['ID cliente'].isin(clientes_prejuizo)]
-
-        # Agrupar por cliente e calcular receita e custo totais de tudo que compraram
-        df_totais_por_cliente = df_clientes_completo.groupby('ID cliente').apply(
-            lambda x: pd.Series({
-                'Receita Total': x['Valor liquido item'].sum(),
-                'Custo Total': x['Custo Total'].sum()
-            })
-        ).reset_index()
-
-        # Criar um dicionário para rápida consulta: receita e custo total por cliente
-        dict_totais_cliente = dict(zip(df_totais_por_cliente['ID cliente'], 
-                                        zip(df_totais_por_cliente['Receita Total'], df_totais_por_cliente['Custo Total'])
-                                    ))
-
-        # Mapear para cada cliente na df_prejuizo
-        df_prejuizo['Receita Total Clientes'] = df_prejuizo['ID cliente'].map(lambda cid: dict_totais_cliente[cid][0])
-        df_prejuizo['Custo Total Clientes'] = df_prejuizo['ID cliente'].map(lambda cid: dict_totais_cliente[cid][1])
-
-        # Agrupar por procedimento e somar todas as receitas e custos dos clientes que compraram esse procedimento
-        df_agrupado = df_prejuizo.groupby('Procedimento_padronizado').agg({
+        # Agrupar por procedimento e calcular métricas básicas
+        df_agrupado = df.groupby('Procedimento_padronizado').agg({
             'Valor liquido item': 'sum',  # Receita do procedimento com prejuízo
-            'Lucro': 'sum',               # Prejuízo do procedimento
-            'Receita Total Clientes': 'sum',   # Receita total de todos esses clientes (todas as compras)
-            'Custo Total Clientes': 'sum'      # Custo total de todos esses clientes (todas as compras)
+            'Lucro': 'sum'                # Prejuízo total do procedimento
         }).reset_index()
 
-        df_agrupado["Lucro/Prejuízo Agrupado"] =df_agrupado['Receita Total Clientes'] - df_agrupado['Custo Total Clientes']
-        df_agrupado['Lucro/Prejuízo Agrupado %'] = df_agrupado['Lucro/Prejuízo Agrupado'] / df_agrupado['Receita Total Clientes'] * 100
+        # Lista de clientes que compraram cada procedimento com prejuízo
+        clientes_por_procedimento = df_prejuizo.groupby('Procedimento_padronizado')['ID cliente'].unique().reset_index()
+        clientes_por_procedimento.columns = ['Procedimento_padronizado', 'Clientes']
 
-        # Renomear 
+        # Juntar com o df_agrupado
+        df_agrupado = df_agrupado.merge(clientes_por_procedimento, on='Procedimento_padronizado')
+
+        # Função para calcular receita e custo total dos clientes
+        def calcular_totais_por_cliente(lista_clientes):
+            clientes_mask = df['ID cliente'].isin(lista_clientes)
+            receita_total = df.loc[clientes_mask, 'Valor liquido item'].sum()
+            custo_total = df.loc[clientes_mask, 'Custo Total'].sum()
+            lucro_total = receita_total - custo_total
+            return pd.Series([receita_total, custo_total, lucro_total])
+
+        # Aplicar a função para cada procedimento
+        df_agrupado[['Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado']] = \
+            df_agrupado['Clientes'].apply(calcular_totais_por_cliente)
+        
+        df_agrupado['Lucro/Prejuízo Agregado %'] = df_agrupado['Lucro/Prejuízo Agregado'] / df_agrupado['Receita Total Clientes'] * 100
+
+        # Renomear colunas para clareza
         df_agrupado = df_agrupado.rename(columns={
             'Valor liquido item': 'Receita Procedimento',
-            'Lucro': 'Prejuízo Procedimento',
-            'Receita Total Clientes': 'Receita total de clientes',
-            'Custo Total Clientes': 'Custo total de clientes'
+            'Lucro': 'Prejuízo Procedimento'
         })
 
-        # Ordenar pelos maiores prejuízos
-        df_agrupado = df_agrupado.sort_values(by='Lucro/Prejuízo Agrupado')
+        # Selecionar e ordenar colunas
+        df_analise_preju_final = df_agrupado[[
+            'Procedimento_padronizado',
+            'Receita Procedimento',
+            'Prejuízo Procedimento',
+            'Receita Total Clientes',
+            'Custo Total Clientes',
+            'Lucro/Prejuízo Agregado',
+            'Lucro/Prejuízo Agregado %'
+        ]]
 
-        # Selecionar as colunas finais
-        df_final_agregados = df_agrupado[
-            [
-                'Procedimento_padronizado',
-                'Receita Procedimento',
-                'Prejuízo Procedimento',
-                'Receita total de clientes',
-                'Custo total de clientes',
-                'Lucro/Prejuízo Agrupado',
-                'Lucro/Prejuízo Agrupado %'
-            ]
-        ]
+        # Ordenar por maior prejuízo (menor lucro)
+        df_agrupado = df_agrupado.sort_values('Lucro Agregado')
 
         # Formatar valores monetários
-        for col in ['Receita Procedimento', 'Prejuízo Procedimento', 'Receita total de clientes', 'Custo total de clientes','Lucro/Prejuízo Agrupado']:
-            df_final_agregados[col] = df_final_agregados[col].apply(lambda x: f"R${x:,.2f}")
+        for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
+                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro Agregado']:
+            df_analise_preju_final[col] = df_analise_preju_final[col].apply(lambda x: f"R${x:,.2f}")
 
         # Formatar porcentagens
-        df_final_agregados['Lucro/Prejuízo Agrupado %'] = df_final_agregados['Lucro/Prejuízo Agrupado %'].apply(lambda x: f"{x:.2f}%")
-        
-        # Exibir na interface
-        st.dataframe(df_final_agregados)
+        df_analise_preju_final['Lucro/Prejuízo Agregado %'] = df_agrupado['Lucro/Prejuízo Agregado %'].apply(lambda x: f"{x:.2f}%")
+
+        # Resetar índice
+        df_analise_preju_final.reset_index(drop=True, inplace=True)
+        st.dataframe(df_analise_preju_final)
 
         ## Dataframe por unidade:
         df_groupby_unidade = df.groupby(["Unidade"]).agg({"Valor liquido item" : "sum","Custo Direto Total" : "sum",
