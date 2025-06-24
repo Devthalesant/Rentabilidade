@@ -6,17 +6,21 @@ from pathlib import Path
 import streamlit as st
 from Functions.vmb import criando_df_final_Rentabilidade
 from Functions.dictionaries import obter_dicionarios
+from Functions.mongo import *
 import io
 
 
 def page_analyse_2025():
-        ano = 2025
         # Carrega o df
 
         #vmb_concat_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Venda Mesal Bruta/2025/vmb_2025_concat.csv"
         #custo_fixo_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Custos Fixos/2025/CF-txSala_Mensal.xlsx"
 
-        df_final = criando_df_final_Rentabilidade(ano)
+        custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custos_fixos_2025")
+        vmb_concat = pegar_dados_mongodb("rentabilidade_anual","venda_mensal_bruta_2025")
+        df_taxas = pegar_dados_mongodb("rentabilidade_anual","impostos_taxas_2025")
+
+        df_final = criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas)
         
         st.title("🌟 Análise de Rentabilidade 2025")
         
