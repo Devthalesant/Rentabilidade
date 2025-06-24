@@ -313,51 +313,72 @@ def page_analyse_2025():
         )
 
 
-        donwloads = st.button("Clique aqui para Ver as opções de Donwloads!")
-        if donwloads:
-            def to_excel_bytes(df):
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    df.to_excel(writer, index=True)
-                return output.getvalue()
+        downloads = st.button("Clique aqui para Ver as opções de Download!")
+        if downloads:
+            with st.status("Carregando Arquivos em Excel, Por favor Aguarde...", expanded=True) as status:
+                # Adicionando etapas de processamento para melhor feedback
+                st.write("Preparando arquivos para download...")
+                
+                def to_excel_bytes(df):
+                    output = io.BytesIO()
+                    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                        df.to_excel(writer, index=True)
+                    return output.getvalue()
 
-            lucros_excel = to_excel_bytes(lucros)
-            prejuizos_excel = to_excel_bytes(prejuizos)
-            base_excel = to_excel_bytes(df_database)
-            preju_agregados_excel = to_excel_bytes(df_analise_preju_final)
-            analise_unidades = to_excel_bytes(df_groupby_unidade)
+                st.write("Processando DataFrame de Lucros...")
+                lucros_excel = to_excel_bytes(lucros)
+                
+                st.write("Processando DataFrame de Prejuízos...")
+                prejuizos_excel = to_excel_bytes(prejuizos)
+                
+                st.write("Processando Base Completa...")
+                base_excel = to_excel_bytes(df_database)
+                
+                st.write("Processando Dados Agregados...")
+                preju_agregados_excel = to_excel_bytes(df_prejuizo)
+                
+                st.write("Processando Análise por Unidade...")
+                analise_unidades = to_excel_bytes(df_groupby_unidade)
+                
+                status.update(label="Todos os arquivos estão prontos!", state="complete", expanded=False)
 
-            st.download_button(
-                label="Baixar Dataframe de Procedimentos com Lucro",
-                data=lucros_excel,
-                file_name="lucros_procedimentos.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            st.subheader("Bases em Excel Disponíveis para Download!")
 
-            st.download_button(
-                label="Baixar Dataframe de Procedimentos com Prejuízo",
-                data=prejuizos_excel,
-                file_name="prejuizos_procedimentos.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.download_button(
+                    label="Baixar Dataframe de Procedimentos com Lucro",
+                    data=lucros_excel,
+                    file_name="lucros_procedimentos.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
+                st.download_button(
+                    label="Baixar Dataframe de Procedimentos Agregados - Prejuízo",
+                    data=preju_agregados_excel,
+                    file_name="Procedimentos_agregados_prejuízo.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
+            with col2:
+                st.download_button(
+                    label="Baixar Dataframe de Procedimentos com Prejuízo",
+                    data=prejuizos_excel,
+                    file_name="prejuizos_procedimentos.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
+                st.download_button(
+                    label="Baixar Dataframe de Análise Ebitda por Unidade",
+                    data=analise_unidades,
+                    file_name="Análise_ebitda_Unidades.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
 
             st.download_button(
                 label="Baixar Base de Dados Completa",
                 data=base_excel,
                 file_name="base_dados_completa.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-
-            st.download_button(
-                label="Baixar Dataframe de Procedmentos Agregados - Prejuízo",
-                data=preju_agregados_excel,
-                file_name="Procedimentos_agregados_prejuízo.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-            
-            st.download_button(
-                label="Baixar Dataframe de Análise Ebitda por Unidade",
-                data=analise_unidades,
-                file_name="Análise_ebitda_Unidades.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
