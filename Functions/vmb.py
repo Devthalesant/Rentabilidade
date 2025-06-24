@@ -18,6 +18,10 @@ def criando_df_final_Rentabilidade(ano):
         custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custos_fixos_2025")
         vmb_concat = pegar_dados_mongodb("rentabilidade_anual","venda_mensal_bruta_2025")
         df_taxas = pegar_dados_mongodb("rentabilidade_anual","impostos_taxas_2025")
+    if ano == 2024:
+        custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custos_fixos_2024")
+        vmb_concat = pegar_dados_mongodb("rentabilidade_anual","venda_mensal_bruta_2024")
+        df_taxas = pegar_dados_mongodb("rentabilidade_anual","impostos_taxas_2024")
 
     Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024 , all_costs_2025 = obter_dicionarios()
 
