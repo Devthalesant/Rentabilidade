@@ -12,32 +12,14 @@ from pages.analise_2025 import page_analyse_2025
 from pages.teste_mongo import teste_mongo
 
 # --- PAGE SETUP ---
-page_1 = st.Page(
-    "pages/analise_2025.py",
-    title="Análise de Rentabilidade 2025",
-    icon=":material/savings:",
-    default=True
+# Sidebar Navigation
+page = st.sidebar.selectbox(
+    "Escolha a Página",
+    ("Análise de Rentabilidade 2024", "Análise de Rentabilidade 2025")
 )
 
-page_2 = st.Page(
-    "pages/analise_2024.py",
-    title="Análise de Rentabilidade 2024",
-    icon=":material/settings:",
-)
-
-# --- NAVIGATION SETUP [WITHOUT SECTIONS] ---
-# pg = st.navigation(pages=[about_page, project_1_page, project_2_page])
-
-# --- NAVIGATION SETUP [WITH SECTIONS]---
-pg = st.navigation(
-    {
-        "Páginas": [page_1,page_2]
-    }
-)
-
-
-# --- SHARED ON ALL PAGES ---
-# st.logo("assets/codingisfun_logo.png")
-
-# --- RUN NAVIGATION ---
-pg.run()
+# Load selected page
+if page == "Análise de Rentabilidade 2024":
+    page_analyse_2024()
+elif page == "Análise de Rentabilidade 2025":
+    page_analyse_2025()
