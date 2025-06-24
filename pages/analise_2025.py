@@ -9,7 +9,7 @@ from Functions.dictionaries import obter_dicionarios
 from Functions.mongo import *
 import io
 
-
+@st.cache_data
 def page_analyse_2025():
         # Carrega o df
 
