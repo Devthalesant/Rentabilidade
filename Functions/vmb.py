@@ -5,13 +5,15 @@ import glob
 from pathlib import Path
 from .dictionaries import obter_dicionarios
 from Functions.mongo import *
+import streamlit as st
 
-
+@st.cache_data
 def criando_df_final_Rentabilidade(): 
 # Essa Função Junta o VMB com a base de Custos Fixo formatada de forma exata e gera uma planilha niccolucci completa
 #"Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv"
 #"Bases/Custos Fixos/2024/CF-txSala.xlsx"
-
+    
+    # Para usar MOngo DB
     custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custos_fixos_2025")
     vmb_concat = pegar_dados_mongodb("rentabilidade_anual","Venda Mensal Bruta")
     df_taxas = pegar_dados_mongodb("rentabilidade_anual","impostos_taxas_2025")
@@ -185,8 +187,6 @@ def criando_df_final_Rentabilidade():
     df_merged_cf = df_merged_cf[df_merged_cf_columns]
 
     df_merged_cf["Taxa Ociosidade (Min)"] = df_merged_cf["Valor Tempo Ocioso"] / df_merged_cf['Tempo Utilizado']
-
-    df_merged_cf
 
     df_taxa_sala_ociosidade = df_merged_cf.groupby(['Unidade', 'Mês']).agg({
         'Taxa Sala (Min)': 'first',

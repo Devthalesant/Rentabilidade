@@ -10,6 +10,10 @@ import io
 
 def page_analyse_2025():
         # Carrega o df
+
+        #vmb_concat_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Venda Mesal Bruta/2025/vmb_2025_concat.csv"
+        #custo_fixo_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Custos Fixos/2025/CF-txSala_Mensal.xlsx"
+
         df_final = criando_df_final_Rentabilidade()
         
         st.title("🌟 Análise de Rentabilidade 2025")
@@ -235,7 +239,7 @@ def page_analyse_2025():
             'Custo Total Clientes': 'sum'      # Custo total de todos esses clientes (todas as compras)
         }).reset_index()
 
-        # Renomear para maior clareza
+        # Renomear 
         df_agrupado = df_agrupado.rename(columns={
             'Valor liquido item': 'Receita Procedimento',
             'Lucro': 'Prejuízo Procedimento',
@@ -315,7 +319,7 @@ def page_analyse_2025():
             lucros_excel = to_excel_bytes(lucros)
             prejuizos_excel = to_excel_bytes(prejuizos)
             base_excel = to_excel_bytes(df_database)
-            preju_agregados_excel = to_excel_bytes(df_clientes_completo)
+            preju_agregados_excel = to_excel_bytes(df_prejuizo)
             analise_unidades = to_excel_bytes(df_groupby_unidade)
 
             st.download_button(

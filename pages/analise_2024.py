@@ -10,7 +10,10 @@ import io
 
 def page_analyse_2024():
         # Carrega o df
-        df_final = criando_df_final_Rentabilidade()
+        vmb_concat_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv"
+        custo_fixo_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Custos Fixos/2024/CF-txSala.xlsx"
+
+        df_final = criando_df_final_Rentabilidade(vmb_concat_path,custo_fixo_path)
         
         st.title("🌟 Análise de Rentabilidade 2024")
         
