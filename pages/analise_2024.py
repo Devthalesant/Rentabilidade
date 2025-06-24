@@ -10,6 +10,10 @@ import io
 
 def page_analyse_2024():
         # Carrega o df
+
+        #vmb_concat_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv"
+        #custo_fixo_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Custos Fixos/2024/CF-txSala.xlsx"
+
         df_final = criando_df_final_Rentabilidade()
         
         st.title("🌟 Análise de Rentabilidade 2024")
@@ -54,7 +58,7 @@ def page_analyse_2024():
             df['Custo Total'] = df['Custo Direto Total'] + df['Custo Sobre Venda Final'] + df['Custo Fixo']
             df['Lucro'] = df['Valor liquido item'] - df['Custo Total'] 
         
-        # Agrupamento
+         # Agrupamento
         df_gp = df.groupby(["Procedimento_padronizado"]).agg({
             "Quantidade": "sum",
             "Valor unitário": "mean",
@@ -73,6 +77,7 @@ def page_analyse_2024():
         (df_gp['Receita Gerada'] - df_gp['Custo Direto Total'] - df_gp['Custo Sobre Venda Final']) / df_gp['Receita Gerada'] * 100, 0)
 
         df_gp["Lucro %"] = df_gp["Lucro"] / df_gp["Receita Gerada"] * 100
+        df_gp["Lucro Por Item"] = df_gp["Lucro"] / df_gp["Quantidade"]
 
         # Soma total de Lucro
         lucro_total = df_gp['Lucro'].sum()
@@ -82,7 +87,7 @@ def page_analyse_2024():
         custo_total = df_gp['Custo Total'].sum()
 
         procedimentos_df_columns = ["Procedimento_padronizado","Quantidade","Preço Praticado","Receita Gerada","Custo Direto Total",
-                                    "Custo Sobre Venda Final", "Margem de Contribuição %","Custo Fixo","Custo Total", "Lucro", "Lucro %", "Tempo Utilizado"]  
+                                    "Custo Sobre Venda Final", "Margem de Contribuição %","Custo Fixo","Custo Total", "Lucro",'Lucro Por Item', "Lucro %", "Tempo Utilizado"]  
 
         df_gp = df_gp[procedimentos_df_columns]
 
@@ -131,7 +136,8 @@ def page_analyse_2024():
             'Custo Total': 'R$ {:,.2f}'.format,
             'Margem de Contribuição %': '{:.2f}%'.format,
             'Receita_total_clientes' : 'R$ {:,.2f}'.format,
-            'Lucro %' : '% {:,.2f}'.format,
+            'Lucro %': '% {:,.2f}'.format,
+            'Lucro Por Item': 'R$ {:,.2f}'.format, 
         }
 
         # Procedimentos com maior lucro
@@ -224,11 +230,10 @@ def page_analyse_2024():
             return pd.Series([receita_total, custo_total, lucro_total])
 
         # Aplicar a função para cada procedimento
-        df_agrupado[['Receita Total Clientes', 'Custo Total Clientes', 'Lucro Agregado']] = \
+        df_agrupado[['Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado']] = \
             df_agrupado['Clientes'].apply(calcular_totais_por_cliente)
-
-        # Ordenar por maior prejuízo (menor lucro)
-        df_agrupado = df_agrupado.sort_values('Lucro')
+        
+        df_agrupado['Lucro/Prejuízo Agregado %'] = df_agrupado['Lucro/Prejuízo Agregado'] / df_agrupado['Receita Total Clientes'] * 100
 
         # Renomear colunas para clareza
         df_agrupado = df_agrupado.rename(columns={
@@ -243,18 +248,26 @@ def page_analyse_2024():
             'Prejuízo Procedimento',
             'Receita Total Clientes',
             'Custo Total Clientes',
-            'Lucro Agregado'
+            'Lucro/Prejuízo Agregado',
+            'Lucro/Prejuízo Agregado %'
         ]]
 
         # Formatar valores monetários
         for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
-                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro Agregado']:
+                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado']:
             df_analise_preju_final[col] = df_analise_preju_final[col].apply(lambda x: f"R${x:,.2f}")
+
+        # Formatar porcentagens
+        df_analise_preju_final['Lucro/Prejuízo Agregado %'] = df_agrupado['Lucro/Prejuízo Agregado %'].apply(lambda x: f"{x:.2f}%")
 
         # Resetar índice
         df_analise_preju_final.reset_index(drop=True, inplace=True)
+
+        # Ordenar por maior prejuízo (menor lucro)
+        df_analise_preju_final = df_analise_preju_final.sort_values('Lucro/Prejuízo Agregado', ascending=True)
+
         st.dataframe(df_analise_preju_final)
-        
+
         ## Dataframe por unidade:
         df_groupby_unidade = df.groupby(["Unidade"]).agg({"Valor liquido item" : "sum","Custo Direto Total" : "sum",
                                                         "Custo Total" : "sum"}).reset_index()
@@ -294,6 +307,7 @@ def page_analyse_2024():
                     subset=['EBITDA %'])
         )
 
+
         donwloads = st.button("Clique aqui para Ver as opções de Donwloads!")
         if donwloads:
             def to_excel_bytes(df):
@@ -305,7 +319,7 @@ def page_analyse_2024():
             lucros_excel = to_excel_bytes(lucros)
             prejuizos_excel = to_excel_bytes(prejuizos)
             base_excel = to_excel_bytes(df_database)
-            preju_agregados_excel = to_excel_bytes(df_analise_preju_final)
+            preju_agregados_excel = to_excel_bytes(df_prejuizo)
             analise_unidades = to_excel_bytes(df_groupby_unidade)
 
             st.download_button(
