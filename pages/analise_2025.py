@@ -239,6 +239,9 @@ def page_analyse_2025():
             'Custo Total Clientes': 'sum'      # Custo total de todos esses clientes (todas as compras)
         }).reset_index()
 
+        df_agrupado["Lucro/Prejuízo Agrupado"] =df_agrupado['Receita Total Clientes'] - df_agrupado['Custo Total Clientes']
+        df_agrupado['Lucro/Prejuízo Agrupado %'] = df_agrupado['Lucro/Prejuízo Agrupado'] / df_agrupado['Receita Total Clientes'] * 100
+
         # Renomear 
         df_agrupado = df_agrupado.rename(columns={
             'Valor liquido item': 'Receita Procedimento',
@@ -248,7 +251,7 @@ def page_analyse_2025():
         })
 
         # Ordenar pelos maiores prejuízos
-        df_agrupado = df_agrupado.sort_values(by='Prejuízo Procedimento')
+        df_agrupado = df_agrupado.sort_values(by='Lucro/Prejuízo Agrupado')
 
         # Selecionar as colunas finais
         df_final_agregados = df_agrupado[
@@ -257,17 +260,22 @@ def page_analyse_2025():
                 'Receita Procedimento',
                 'Prejuízo Procedimento',
                 'Receita total de clientes',
-                'Custo total de clientes'
+                'Custo total de clientes',
+                'Lucro/Prejuízo Agrupado',
+                'Lucro/Prejuízo Agrupado %'
             ]
         ]
 
         # Formatar valores monetários
-        for col in ['Receita Procedimento', 'Prejuízo Procedimento', 'Receita total de clientes', 'Custo total de clientes']:
+        for col in ['Receita Procedimento', 'Prejuízo Procedimento', 'Receita total de clientes', 'Custo total de clientes','Lucro/Prejuízo Agrupado']:
             df_final_agregados[col] = df_final_agregados[col].apply(lambda x: f"R${x:,.2f}")
 
+        # Formatar porcentagens
+        df_final_agregados['Lucro/Prejuízo Agrupado %'] = df_final_agregados['Lucro/Prejuízo Agrupado %'].apply(lambda x: f"{x:.2f}%")
+        
         # Exibir na interface
         st.dataframe(df_final_agregados)
-        st.dataframe(df_clientes_completo)
+
         ## Dataframe por unidade:
         df_groupby_unidade = df.groupby(["Unidade"]).agg({"Valor liquido item" : "sum","Custo Direto Total" : "sum",
                                                         "Custo Total" : "sum"}).reset_index()
