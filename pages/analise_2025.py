@@ -257,7 +257,7 @@ def page_analyse_2025():
 
         # Formatar valores monetários
         for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
-                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro Agregado']:
+                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado']:
             df_analise_preju_final[col] = df_analise_preju_final[col].apply(lambda x: f"R${x:,.2f}")
 
         # Formatar porcentagens
