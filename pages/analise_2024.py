@@ -9,7 +9,6 @@ from Functions.dictionaries import obter_dicionarios
 from Functions.mongo import *
 import io
 
-@st.cache_data
 def page_analyse_2024():
         
         custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custos_fixos_2024")
