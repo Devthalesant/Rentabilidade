@@ -11,35 +11,33 @@ from pages.auth import login
 from pages.analise_2025 import page_analyse_2025
 from pages.teste_mongo import teste_mongo
 
-def main():
-    # Sessão
-    if 'autenticado' not in st.session_state:
-        st.session_state['autenticado'] = False
+# --- PAGE SETUP ---
+page_1 = st.Page(
+    "pages/analise_2025.py",
+    title="Análise de Rentabilidade 2025",
+    icon=":material/savings:",
+    default=True
+)
 
-    # Tela de login
-    if not st.session_state['autenticado']:
-        if login():
-            st.session_state['autenticado'] = True
-        else:
-            st.stop()
+page_2 = st.Page(
+    "pages/analise_2025.py",
+    title="Análise de Rentabilidade 2024",
+    icon=":material/settings:",
+)
 
-    # Depois do login, mostra só a opção de página
-    escolha = st.sidebar.selectbox(
-        "Escolha uma página:",
-        list({
-            "1 - Análise 2024": page_analyse_2024,
-            "2 - Análise 2025": page_analyse_2025,
-            "3 - testando" : teste_mongo,
-        }.keys())
-    )
-    
-    # Executa a página selecionada
-    if escolha == "1 - Análise 2024":
-        page_analyse_2024()
-    elif escolha == "2 - Análise 2025":
-        page_analyse_2025()
-    elif escolha == "3 - testando":
-        teste_mongo()
+# --- NAVIGATION SETUP [WITHOUT SECTIONS] ---
+# pg = st.navigation(pages=[about_page, project_1_page, project_2_page])
 
-if __name__ == "__main__":
-    main()
+# --- NAVIGATION SETUP [WITH SECTIONS]---
+pg = st.navigation(
+    {
+        "Páginas": [page_1,page_2]
+    }
+)
+
+
+# --- SHARED ON ALL PAGES ---
+# st.logo("assets/codingisfun_logo.png")
+
+# --- RUN NAVIGATION ---
+pg.run()
