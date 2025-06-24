@@ -8,7 +8,7 @@ from Functions.vmb import criando_df_final_Rentabilidade
 from Functions.dictionaries import obter_dicionarios
 import io
 
-@st.cache_data
+
 def page_analyse_2025():
         ano = 2025
         # Carrega o df
