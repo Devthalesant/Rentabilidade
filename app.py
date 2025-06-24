@@ -20,7 +20,7 @@ st.set_page_config(
 # Sidebar Navigation
 page = st.sidebar.selectbox(
     "Escolha a Página",
-    ("Análise de Rentabilidade 2024", "Análise de Rentabilidade 2025")
+    ("Rentabilidade 2024", "Rentabilidade 2025")
 )
 
 # Load selected page
