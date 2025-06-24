@@ -9,8 +9,13 @@ from Functions.dictionaries import obter_dicionarios
 from pages.analise_2024 import page_analyse_2024
 from pages.auth import login
 from pages.analise_2025 import page_analyse_2025
-from pages.teste_mongo import teste_mongo
 
+st.set_page_config(
+    page_title="Rentabilidade - Pró-Corpo",  # Opcional, para o título da aba do navegador
+    layout="wide"                  # Configura o modo wide
+)
+
+# O restante do seu código...
 # --- PAGE SETUP ---
 # Sidebar Navigation
 page = st.sidebar.selectbox(
