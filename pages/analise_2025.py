@@ -264,8 +264,8 @@ def page_analyse_2025():
         df_analise_preju_final.reset_index(drop=True, inplace=True)
 
         # Ordenar por maior prejuízo (menor lucro)
-        df_agrupado = df_agrupado.sort_values('Lucro/Prejuízo Agregado', ascending=False)
-        
+        df_analise_preju_final = df_analise_preju_final.sort_values('Lucro/Prejuízo Agregado', ascending=False)
+
         st.dataframe(df_analise_preju_final)
 
         ## Dataframe por unidade:
