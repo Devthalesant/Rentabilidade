@@ -20,7 +20,7 @@ page_1 = st.Page(
 )
 
 page_2 = st.Page(
-    "pages/analise_2025.py",
+    "pages/analise_2024.py",
     title="Análise de Rentabilidade 2024",
     icon=":material/settings:",
 )
