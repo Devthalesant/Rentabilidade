@@ -253,7 +253,7 @@ def page_analyse_2025():
         ]]
 
         # Ordenar por maior prejuízo (menor lucro)
-        df_agrupado = df_agrupado.sort_values('Lucro/Prejuízo Agregado')
+        df_agrupado = df_agrupado.sort_values('Lucro/Prejuízo Agregado', ascending=True)
 
         # Formatar valores monetários
         for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
