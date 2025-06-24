@@ -1,6 +1,6 @@
 import streamlit as st
-from pages.analise_2024 import page_analyse_2024
-from pages.analise_2025 import page_analyse_2025
+from modules.analise_2024 import page_analyse_2024
+from modules.analise_2025 import page_analyse_2025
 
 st.set_page_config(
     page_title="Rentabilidade - Pró-Corpo", 
