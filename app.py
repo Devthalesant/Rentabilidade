@@ -24,7 +24,7 @@ page = st.sidebar.selectbox(
 )
 
 # Load selected page
-if page == "Análise de Rentabilidade 2024":
+if page == "Rentabilidade 2024":
     page_analyse_2024()
-elif page == "Análise de Rentabilidade 2025":
+elif page == "Rentabilidade 2025":
     page_analyse_2025()
