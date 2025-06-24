@@ -252,9 +252,6 @@ def page_analyse_2025():
             'Lucro/Prejuízo Agregado %'
         ]]
 
-        # Ordenar por maior prejuízo (menor lucro)
-        df_agrupado = df_agrupado.sort_values('Lucro/Prejuízo Agregado', ascending=False)
-
         # Formatar valores monetários
         for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
                     'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado']:
@@ -265,6 +262,10 @@ def page_analyse_2025():
 
         # Resetar índice
         df_analise_preju_final.reset_index(drop=True, inplace=True)
+
+        # Ordenar por maior prejuízo (menor lucro)
+        df_agrupado = df_agrupado.sort_values('Lucro/Prejuízo Agregado', ascending=False)
+        
         st.dataframe(df_analise_preju_final)
 
         ## Dataframe por unidade:
