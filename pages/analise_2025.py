@@ -319,7 +319,7 @@ def page_analyse_2025():
             lucros_excel = to_excel_bytes(lucros)
             prejuizos_excel = to_excel_bytes(prejuizos)
             base_excel = to_excel_bytes(df_database)
-            preju_agregados_excel = to_excel_bytes(df_prejuizo)
+            preju_agregados_excel = to_excel_bytes(df_analise_preju_final)
             analise_unidades = to_excel_bytes(df_groupby_unidade)
 
             st.download_button(
