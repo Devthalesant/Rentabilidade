@@ -9,12 +9,13 @@ from Functions.dictionaries import obter_dicionarios
 import io
 
 def page_analyse_2025():
+        ano = 2025
         # Carrega o df
 
         #vmb_concat_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Venda Mesal Bruta/2025/vmb_2025_concat.csv"
         #custo_fixo_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Custos Fixos/2025/CF-txSala_Mensal.xlsx"
 
-        df_final = criando_df_final_Rentabilidade()
+        df_final = criando_df_final_Rentabilidade(ano)
         
         st.title("🌟 Análise de Rentabilidade 2025")
         
