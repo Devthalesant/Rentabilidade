@@ -1,6 +1,7 @@
 import streamlit as st
 from modules.analise_2024 import page_analyse_2024
 from modules.analise_2025 import page_analyse_2025
+from modules.atualizar_dados import atualizar_banco_de_dados
 
 st.set_page_config(
     page_title="Rentabilidade - Pró-Corpo", 
@@ -24,7 +25,7 @@ def main():
         },
 
         "Admin": {
-            "1 - Atualizar Base de Dados": "",
+            "1 - Atualizar Base de Dados":atualizar_banco_de_dados,
         }
     }
 

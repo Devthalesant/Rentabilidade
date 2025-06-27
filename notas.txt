@@ -60,3 +60,5 @@ no secrets:
 na aba com as funções de requsição do mongo : 
     Import Streamlit as st 
     uri = st.secrets.mongo_credentials.uri
+
+
