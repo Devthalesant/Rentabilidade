@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from Functions.mongo import *
-import time  # Adicionado para o feedback visual
+import time 
 
 def atualizar_banco_de_dados():
     st.title("Atualizar Banco de Dados")
@@ -80,7 +80,7 @@ def atualizar_banco_de_dados():
                     except Exception as e:
                         status.write(f"❌ Erro ao atualizar {base['nome']}: {str(e)}")
                     
-                    time.sleep(0.5)  # Pequena pausa para visualização
+                    time.sleep(0.5)
                 
                 status.update(
                     label="✅ Todas as bases foram atualizadas com sucesso!",
@@ -88,7 +88,7 @@ def atualizar_banco_de_dados():
                     expanded=False
                 )
             
-            st.balloons()  # Efeito visual de confirmação
+            st.balloons() 
             return None
             
         return lista_bases_subir  # Retorna apenas se o botão não foi pressionado
