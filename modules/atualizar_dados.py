@@ -5,7 +5,7 @@ import time
 
 def atualizar_banco_de_dados():
     st.title("Atualizar Banco de Dados")
-    st.write("Favor Anexar as Bases de fechamentos do Mês abaixo:")
+    st.subheader("Favor Anexar as Bases de fechamentos do Mês abaixo:")
     
     # Seção para input do ano
     ano = st.text_input("Digite o Ano (Ex: 2025)")
@@ -94,7 +94,7 @@ def atualizar_banco_de_dados():
         return lista_bases_subir  # Retorna apenas se o botão não foi pressionado
     else:
         if not ano:
-            st.warning("Por favor, informe o ano")
+            st.warning("Por favor, informe o ano.")
         else:
             st.warning("Aguardando upload de todos os arquivos...")
         return None
