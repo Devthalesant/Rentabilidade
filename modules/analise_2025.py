@@ -335,7 +335,7 @@ def page_analyse_2025():
                 base_excel = to_excel_bytes(df_database)
                 
                 st.write("Processando Dados Agregados...")
-                preju_agregados_excel = to_excel_bytes(df_prejuizo)
+                preju_agregados_excel = to_excel_bytes(df_agrupado)
                 
                 st.write("Processando Análise por Unidade...")
                 analise_unidades = to_excel_bytes(df_groupby_unidade)
