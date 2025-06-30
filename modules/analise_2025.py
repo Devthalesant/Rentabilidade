@@ -213,10 +213,16 @@ def page_analyse_2025():
 
         df_prejuizo = df[df['Procedimento_padronizado'].isin(lista_procedimentos_prejuizo)].copy()
 
-        # Agrupar por procedimento e calcular métricas básicas
+        # In the initial aggregation (replace the current one):
         df_agrupado = df.groupby('Procedimento_padronizado').agg({
-            'Valor liquido item': 'sum',  # Receita do procedimento com prejuízo
-            'Lucro': 'sum'                # Prejuízo total do procedimento
+            'Valor liquido item': 'sum',  # Revenue
+            'Lucro': 'sum',               # Profit/Loss
+            'Quantidade': 'sum',          # Total quantity
+            'Cortesia?': lambda x: df.loc[x.index, 'Quantidade'][x == True].sum()  # Courtesy quantity
+        }).rename(columns={
+            'Valor liquido item': 'Receita Procedimento',
+            'Lucro': 'Prejuízo Procedimento',
+            'Cortesia?': 'Quantidade_cortesia'
         }).reset_index()
 
         # Lista de clientes que compraram cada procedimento com prejuízo
@@ -225,6 +231,7 @@ def page_analyse_2025():
 
         # Juntar com o df_agrupado
         df_agrupado = df_agrupado.merge(clientes_por_procedimento, on='Procedimento_padronizado')
+
 
         # Função para calcular receita e custo total dos clientes
         def calcular_totais_por_cliente(lista_clientes):
@@ -250,6 +257,8 @@ def page_analyse_2025():
         df_analise_preju_final = df_agrupado[[
             'Procedimento_padronizado',
             'Receita Procedimento',
+            'Quantidade', 
+            'Quantidade_cortesia',
             'Prejuízo Procedimento',
             'Receita Total Clientes',
             'Custo Total Clientes',
@@ -271,7 +280,14 @@ def page_analyse_2025():
         # Resetar índice
         df_analise_preju_final.reset_index(drop=True, inplace=True)
 
-        st.dataframe(df_analise_preju_final)
+        st.dataframe(
+            df_analise_preju_final,
+            column_config={
+                'Quantidade': st.column_config.NumberColumn("Total Procedures"),
+                'Quantidade_cortesia': st.column_config.NumberColumn("Courtesy Procedures")
+         },
+    hide_index=True
+)
 
         ## Dataframe por unidade:
         df_groupby_unidade = df.groupby(["Unidade"]).agg({"Valor liquido item" : "sum","Custo Direto Total" : "sum",
