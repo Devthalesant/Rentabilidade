@@ -199,4 +199,4 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
 
     df_final.drop(columns='Mês',inplace=True)
 
-    return df_final, df_taxa_sala_ociosidade
+    return df_final
