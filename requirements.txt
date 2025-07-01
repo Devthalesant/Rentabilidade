@@ -5,4 +5,5 @@ pymongo
 mongo
 matplotlib
 XlsxWriter
+openpyxl
 
