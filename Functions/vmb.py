@@ -3,8 +3,7 @@ import numpy as np
 import os
 import glob
 from pathlib import Path
-#from Functions.dictionaries import obter_dicionarios
-from dictionaries import obter_dicionarios
+from Functions.dictionaries import obter_dicionarios
 import streamlit as st
 
 
