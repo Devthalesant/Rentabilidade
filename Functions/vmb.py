@@ -3,8 +3,7 @@ import numpy as np
 import os
 import glob
 from pathlib import Path
-from .dictionaries import obter_dicionarios
-from Functions.mongo import *
+from dictionaries import obter_dicionarios
 import streamlit as st
 
 
@@ -26,7 +25,7 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
 
 
     vmb_concat = vmb_concat[vmb_concat_columns]
-
+    
     #tratando a coluna de datas: 
     vmb_concat['Data venda'] = pd.to_datetime(vmb_concat['Data venda'], errors='coerce')
     #Criando coluna de Ano:
@@ -160,11 +159,7 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
     # Aqui fazer groupby por unidade tbm e mês? 
     df_tempo_pago_mes = vmb_concat.groupby(['Unidade','Mês venda']).agg({"Tempo Utilizado" : 'sum'}).reset_index()
 
-    print(df_tempo_pago)
-    print(df_tempo_pago_mes)
-
     #Merge da base CF com DF de tempo Utilizado
-
     df_merged_cf = pd.merge(df_tempo_pago,custo_fixo,how='left',
         left_on=['Unidade', 'Mês venda'],
         right_on=['Unidade', 'Mês'])
@@ -209,4 +204,4 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
 
     print(df_final)
 
-    return df_final
+    return df_final, df_taxa_sala_ociosidade
