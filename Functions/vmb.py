@@ -28,14 +28,13 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
     
     #tratando a coluna de datas: 
     vmb_concat['Data venda'] = pd.to_datetime(vmb_concat['Data venda'], errors='coerce')
-    #Criando coluna de Ano:
     vmb_concat['Ano de venda'] = vmb_concat['Data venda'].dt.year
 
     columns_to_fill_nan = ['Valor liquido item','Valor tabela item','Valor líquido']
 
     vmb_concat[columns_to_fill_nan] = vmb_concat[columns_to_fill_nan].fillna(0)
 
-    vmb_concat = vmb_concat.loc[vmb_concat["Status"] == "Finalizado"]
+    vmb_concat[columns_to_fill_nan] = vmb_concat[columns_to_fill_nan].fillna(0)
 
     # Tirando unidade que não contam e unidades que fecharam
 
@@ -182,8 +181,6 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
         'Taxa Sala (Min)': 'first',
         'Taxa Ociosidade (Min)': 'first'
         }).reset_index()
-    
-    print(df_taxa_sala_ociosidade)
 
     ## Merge da base de Vendas concat com a tx sala e ociosidade - Base FInal para ANálise e Groupbys
 
@@ -201,7 +198,5 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
     df_final['Mês venda'].unique()
 
     df_final.drop(columns='Mês',inplace=True)
-
-    print(df_final)
 
     return df_final, df_taxa_sala_ociosidade
