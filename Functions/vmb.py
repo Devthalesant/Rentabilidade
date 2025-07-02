@@ -59,6 +59,9 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
     # Quantidade como Nan como 1 (validado): 
     vmb_concat.loc[vmb_concat['Quantidade'].isna(),'Quantidade'] = 1
 
+    # Somente Orçamentos Finalizados
+    vmb_concat = vmb_concat.loc[vmb_concat['Status'] == 'Finalizado']
+
     # Quantidade "Finalizado" para 1
     vmb_concat.loc[vmb_concat['Quantidade'] == "Finalizado", 'Quantidade'] = 1
 
