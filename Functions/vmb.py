@@ -161,7 +161,8 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
     df_tempo_pago.columns = df_tempo_pago.columns.str.strip()
     custo_fixo.columns = [col.strip() for col in custo_fixo.columns]
 
-
+    print(df_tempo_pago.columns)
+    print(custo_fixo.columns)
     #Merge da base CF com DF de tempo Utilizado
     df_merged_cf = pd.merge(df_tempo_pago,custo_fixo,how='left',
         left_on=['Unidade', 'Mês venda'],
