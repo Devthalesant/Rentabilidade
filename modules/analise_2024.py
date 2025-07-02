@@ -11,7 +11,7 @@ import io
 
 def page_analyse_2024():
         
-        custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custos_fixos_2024")
+        custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custo_fixo_2024")
         vmb_concat = pegar_dados_mongodb("rentabilidade_anual","venda_mensal_bruta_2024")
         df_taxas = pegar_dados_mongodb("rentabilidade_anual","impostos_taxas_2024")        
 
