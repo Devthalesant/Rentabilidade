@@ -161,7 +161,7 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
     # Aqui fazer groupby por unidade tbm e mês? 
     df_tempo_pago_mes = vmb_concat.groupby(['Unidade','Mês venda']).agg({"Tempo Utilizado" : 'sum'}).reset_index()
     df_tempo_pago.columns = df_tempo_pago.columns.str.strip()
-    custo_fixo.columns = custo_fixo.columns.str.strip()
+    custo_fixo.columns = [col.strip() for col in custo_fixo.columns]
 
 
     #Merge da base CF com DF de tempo Utilizado
