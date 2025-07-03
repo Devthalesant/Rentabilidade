@@ -233,6 +233,7 @@ def obter_dicionarios():
         'Remoção de Tatuagem 441 a 675 cm²': 'TATUAGEM',
         'Vale Presente': 'VALE PRESENTE',
         'PESCOÇO SESSÃO': 'DEPILAÇÃO',
+        "PESCOÇO SESSÃO (DEPILAÇÃO)" : 'DEPILAÇÃO',
         'NUCA SESSÃO': 'DEPILAÇÃO',
         'VIRILHA + PERIANAL (EXCLUSIVO PARA AGENDAMENTO)': 'DEPILAÇÃO',
         'PÉS SESSÃO': 'DEPILAÇÃO',
@@ -271,6 +272,8 @@ def obter_dicionarios():
         'PEELING REVITALIZANTE (EXOSSOMOS + PDRN NÃO DESCAMATIVO)' : "PEELING REVITALIZANTE PDRN",
         'PEELING REVITALIZANTE (CORTESIA NÃO DESCAMATIVO)' : "PEELING REVITALIZANTE",
         'Peeling Revitalizante (CORTESIA Não Descamativo)' : "PEELING REVITALIZANTE",
+        'HIALURONIDASE' : 'HIALURONIDASE'
+
     }
 
 

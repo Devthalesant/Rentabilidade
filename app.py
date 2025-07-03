@@ -2,6 +2,7 @@ import streamlit as st
 from modules.analise_2024 import page_analyse_2024
 from modules.analise_2025 import page_analyse_2025
 from modules.atualizar_dados import atualizar_banco_de_dados
+from modules.analise_cortesias import courtesy_period
 
 st.set_page_config(
     page_title="Rentabilidade - Pró-Corpo", 
@@ -22,6 +23,9 @@ def main():
         "Análises Rentabilidade": {
             "1 - 2024": page_analyse_2024,
             "2 - 2025": page_analyse_2025,
+        },
+        "Análise De Cortesia": {
+            "1 - Período" : courtesy_period
         },
 
         "Admin": {
