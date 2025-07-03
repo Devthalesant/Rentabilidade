@@ -35,6 +35,7 @@ def courtesy_analysis_dfs():
 
     # Standardize procedures
     appointments["Procedimento_padronizado"] = appointments['Procedimento'].map(Appointments_dic)
+    
 
     # Dropping unmapped values and other procedures that we dont look: 
     appointments = appointments.loc[appointments['Procedimento_padronizado'] != "UNMAPPED"]
@@ -89,6 +90,9 @@ def courtesy_analysis_dfs():
 
     #df to analyze only the courtesy served
     appointments_cortesy = appointments.loc[appointments['Cortesia?'] == True]
+
+    appointments_cortesy['Procedimento_padronizado'] = appointments_cortesy['Procedimento_padronizado'].replace({"BOTOX POWER": "LAVIEEN"})
+    
     appointments_cortesy = appointments_cortesy.loc[appointments_cortesy['Status'] == "Atendido"]
 
     appointments_cortesy_columns = ['ID agendamento', 'ID cliente','Unidade do agendamento',

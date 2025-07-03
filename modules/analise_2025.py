@@ -40,7 +40,7 @@ def page_analyse_2025():
         # Inputs do usuário
         branch = st.selectbox("✅ Selecione a Unidade que deseja Analisar:", unidades_options)
         time = st.selectbox("🗓️ Selecione o Período:", time_options)
-        price = st.selectbox("🗓️ Selecione o estudo:", price_options)
+        price = st.selectbox("🔍 Selecione o estudo:", price_options)
         
         # Cópia do df
         df_database = df_final.copy()

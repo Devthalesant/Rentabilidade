@@ -6,4 +6,5 @@ mongo
 matplotlib
 XlsxWriter
 openpyxl
+plotly
 
