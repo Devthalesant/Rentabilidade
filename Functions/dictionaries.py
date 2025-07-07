@@ -631,7 +631,7 @@ def obter_dicionarios():
         "VICAE": {"CUSTO TOTAL": 56.60, "CUSTO PRODUTO": 56.60, "MOD": 0.0, "CUSTO INSUMOS": 0.0},
         "BOTOX PRIME" : {"CUSTO TOTAL": 190.00, "CUSTO PRODUTO": 237.5, "MOD": 60.0, "CUSTO INSUMOS": 5.82},
         "VALE PRESENTE": {"CUSTO TOTAL": 0.0, "CUSTO PRODUTO": 0.0, "MOD": 0.0, "CUSTO INSUMOS": 0.0},
-        "DRENAGEM 30 MIN": {"CUSTO TOTAL": 17.26, "CUSTO PRODUTO": 2.4, "MOD": 11.65, "CUSTO INSUMOS": 3.21}      
+        "DRENAGEM (30 MIN)": {"CUSTO TOTAL": 17.26, "CUSTO PRODUTO": 2.4, "MOD": 11.65, "CUSTO INSUMOS": 3.21}      
     }
 
 
@@ -703,7 +703,7 @@ def obter_dicionarios():
     "MOUSSE NETTOYANTE" : {"CUSTO TOTAL": 81.40, "CUSTO PRODUTO": 81.40, "MOD": 0.0, "CUSTO INSUMOS": 0.0},
     "SERUM HYALU TGF REPAIR" : {"CUSTO TOTAL": 152.90, "CUSTO PRODUTO": 152.90, "MOD": 0.0, "CUSTO INSUMOS": 0.0},
     "CREME POUR LE COU" : {"CUSTO TOTAL": 141.90, "CUSTO PRODUTO": 141.90, "MOD": 0.0, "CUSTO INSUMOS": 0.0},
-    "DRENAGEM 30 MIN": {"CUSTO TOTAL": 17.26, "CUSTO PRODUTO": 2.4, "MOD": 11.65, "CUSTO INSUMOS": 3.21},
+    "DRENAGEM (30 MIN)": {"CUSTO TOTAL": 17.26, "CUSTO PRODUTO": 2.4, "MOD": 11.65, "CUSTO INSUMOS": 3.21} 
     }
 
     return Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024, all_costs_2025
