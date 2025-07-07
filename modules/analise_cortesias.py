@@ -16,11 +16,24 @@ import plotly.express as px
 def courtesy_period():
 
     #bringing the dataframes: 
-    database,courtesy_analysis_procedure,courtesy_custumor_reviw = courtesy_analysis_dfs()
+    database,courtesy_analysis_procedure,courtesy_custumor_reviw,gp_cortesias_branch = courtesy_analysis_dfs()
 
     st.title("Análise de Cortesias Período 🎁:")
 
-    analysis_options = ['Custo Fixo Zerado', 'Custo Fixo Real']
+    unidades_options_cortesy = [
+        "TODAS COMPILADAS", "ALPHAVILLE", "CAMPINAS", "COPACABANA", "GUARULHOS",
+        "JARDINS", "LAPA", "LONDRINA", "MOOCA", "MOEMA", "OSASCO", "IPIRANGA","ITAIM",
+        "SÃO BERNARDO", "SANTO AMARO","SOROCABA", "SANTOS", "TIJUCA", "TATUAPÉ", "TUCURUVI",
+        "VILA MASCOTE"]
+    
+    branch_cortesy = st.selectbox("✅ Selecione a Unidade que deseja Analisar:", unidades_options_cortesy)
+
+    if branch_cortesy != "TODAS COMPILADAS":
+        courtesy_analysis_procedure = gp_cortesias_branch.loc[gp_cortesias_branch['Unidade do agendamento'] == branch_cortesy]
+        courtesy_custumor_reviw = courtesy_custumor_reviw.loc[courtesy_custumor_reviw['Unidade do agendamento'] == branch_cortesy]
+    else: 
+        courtesy_analysis_procedure = courtesy_analysis_procedure
+        courtesy_custumor_reviw = courtesy_custumor_reviw
 
 
     format_dict = {
@@ -76,7 +89,7 @@ def courtesy_period():
         graphic_one_top_5, 
         x='Procedimento_padronizado', 
         y='Quantidade',
-        title="Top Procedures by Quantity (Interactive)",
+        title="Top 5 procediemntos mais atendidos (Interactive)",
         labels={'Quantidade': 'Total Quantity', 'Procedimento_padronizado': 'Procedure'},
         color='Quantidade',
         color_continuous_scale='Purples',
@@ -90,6 +103,7 @@ def courtesy_period():
         margin=dict(l=20, r=20, t=40, b=20),  # Reduce margins
     )
     st.plotly_chart(fig, use_container_width=True)  # Fits Streamlit container
+    st.divider()
 
     # 1. Aggregate and sort properly
     graphic_two = courtesy_custumor_reviw.groupby(
@@ -116,7 +130,7 @@ def courtesy_period():
         x='Procedimento_padronizado',
         y='Quantidade',
         color='Classificacao',
-        title='Top 5 Procedures by Buyer Quantity (Comprador)',
+        title='Top 5 Procedimentos mais atendidos por Categoria (Cliente)',
         labels={'Quantidade': 'Quantity', 'Procedimento_padronizado': 'Procedure'},
         color_discrete_map={  # Explicit color mapping
             'Comprador': '#7851a9',  # Purple for buyers
@@ -148,6 +162,7 @@ def courtesy_period():
     )
 
     st.plotly_chart(fig, use_container_width=True)
+    st.divider()
 
     # 1. Calculate unique clients per classification
     client_distribution = courtesy_custumor_reviw.groupby('Classificacao')['ID cliente'].nunique().reset_index()
@@ -158,7 +173,7 @@ def courtesy_period():
         client_distribution,
         names='Classificacao',
         values='Unique Clients',
-        title='Client Distribution by Classification (%)',
+        title='Distribuição de Clientes por Classificação (%)',
         color='Classificacao',
         color_discrete_map={
             'Comprador': '#7851a9',  # Purple
@@ -190,3 +205,27 @@ def courtesy_period():
     )
 
     st.plotly_chart(fig, use_container_width=True)
+    st.divider()
+
+    ## bar chart containing all the courtesy totals by branch 
+    bar_chart_total_branch = database.groupby("Unidade do agendamento").agg({"Quantidade" : "sum"}).reset_index()
+    bar_chart_total_branch = bar_chart_total_branch.sort_values(by=['Quantidade'], ascending=False)
+
+    fig_4 = px.bar(
+        bar_chart_total_branch, 
+        x='Unidade do agendamento', 
+        y='Quantidade',
+        title="Cortesia por unidade (Interactive)",
+        labels={'Quantidade': 'Total Quantity', 'Unidade do agendamento': 'Branch'},
+        color='Quantidade',
+        color_continuous_scale='Purples',
+        height=400  # Compact height
+    )
+    
+    
+    
+    
+    st.plotly_chart(fig_4, use_container_width=True)
+    st.divider()
+
+

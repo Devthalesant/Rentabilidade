@@ -27,8 +27,8 @@ def courtesy_analysis_dfs():
     appointments["Quantidade"] = 1
 
     # Filter out unwanted branches
-    branches_to_consider = ['JARDINS']
-    appointments = appointments[appointments['Unidade do agendamento'].isin(branches_to_consider)]
+    branches_to_desconsider = ['PLÁSTICA', 'HOMA', 'PRAIA GRANDE','RIBEIRÃO PRETO', 'BELO HORIZONTE']
+    appointments = appointments[~appointments['Unidade do agendamento'].isin(branches_to_desconsider)]
 
     # Get dictionaries
     Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024, all_costs_2025 = obter_dicionarios()
@@ -187,7 +187,7 @@ def courtesy_analysis_dfs():
 
     clients_totals = clients_totals.rename(columns={"Valor liquido item" : "Receita Gerada"})
 
-    gp_aapointments_client_procedure = appointments_cortesy.groupby(["ID cliente",'Procedimento_padronizado']).agg({"Quantidade" : "sum","Custo_cortesia_total" : "sum"}).reset_index()
+    gp_aapointments_client_procedure = appointments_cortesy.groupby(["ID cliente",'Procedimento_padronizado','Unidade do agendamento']).agg({"Quantidade" : "sum","Custo_cortesia_total" : "sum"}).reset_index()
 
     gp_aapointments_client_procedure = gp_aapointments_client_procedure.rename(columns={"Custo_cortesia_total" : "Custo_Cortesia"})
 
@@ -204,7 +204,7 @@ def courtesy_analysis_dfs():
 
     df_final_merged_appointments_sales['Lucro/Prejuízo'] = df_final_merged_appointments_sales['Lucro/Prejuízo'].round(2)
 
-    df_final_merged_appointments_sales_columns = ['ID cliente', 'Procedimento_padronizado', 'Quantidade',
+    df_final_merged_appointments_sales_columns = ['ID cliente', 'Procedimento_padronizado', 'Quantidade',"Unidade do agendamento",
                                                 'Custo_Cortesia', 'Receita Gerada', 'Custo_total_geral',
                                                     'Lucro/Prejuízo']
 
@@ -213,6 +213,10 @@ def courtesy_analysis_dfs():
 
     # First DF to show
     gp_cortesias = df_final_merged_appointments_sales.groupby('Procedimento_padronizado').agg({'ID cliente' : 'nunique','Quantidade' : 'sum',
+                                                                                            'Custo_Cortesia' : 'sum','Receita Gerada' : 'sum',
+                                                                                            'Custo_total_geral' : 'sum','Lucro/Prejuízo' : 'sum'}).reset_index()
+
+    gp_cortesias_branch = df_final_merged_appointments_sales.groupby(['Procedimento_padronizado','Unidade do agendamento']).agg({'ID cliente' : 'nunique','Quantidade' : 'sum',
                                                                                             'Custo_Cortesia' : 'sum','Receita Gerada' : 'sum',
                                                                                             'Custo_total_geral' : 'sum','Lucro/Prejuízo' : 'sum'}).reset_index()
 
@@ -239,4 +243,4 @@ def courtesy_analysis_dfs():
     # Df thatshow the classification, revenue and costs of each client
     courtesy_custumor_reviw = df_final_merged_appointments_sales
 
-    return database,courtesy_analysis_procedure,courtesy_custumor_reviw
+    return database,courtesy_analysis_procedure,courtesy_custumor_reviw, gp_cortesias_branch
