@@ -27,8 +27,8 @@ def courtesy_analysis_dfs():
     appointments["Quantidade"] = 1
 
     # Filter out unwanted branches
-    branches_to_desconsider = ['PLÁSTICA', 'HOMA', 'PRAIA GRANDE','RIBEIRÃO PRETO', 'BELO HORIZONTE']
-    appointments = appointments[~appointments['Unidade do agendamento'].isin(branches_to_desconsider)]
+    branches_to_consider = ['JARDINS']
+    appointments = appointments[appointments['Unidade do agendamento'].isin(branches_to_consider)]
 
     # Get dictionaries
     Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024, all_costs_2025 = obter_dicionarios()
@@ -63,6 +63,7 @@ def courtesy_analysis_dfs():
     appointments = appointments[appointments_columns]
 
     appointments["Tempo"] = appointments['Procedimento_padronizado'].map(duration_dic)
+    
 
     # Verifying if there is any procedure that we don't inform the time:
 
@@ -90,7 +91,7 @@ def courtesy_analysis_dfs():
 
     #df to analyze only the courtesy served
     appointments_cortesy = appointments.loc[appointments['Cortesia?'] == True]
-
+    
     appointments_cortesy['Procedimento_padronizado'] = appointments_cortesy['Procedimento_padronizado'].replace({"BOTOX POWER": "LAVIEEN"})
     
     appointments_cortesy = appointments_cortesy.loc[appointments_cortesy['Status'] == "Atendido"]
@@ -171,9 +172,9 @@ def courtesy_analysis_dfs():
 
     appointments_cortesy = appointments_cortesy.drop(columns=['Unidade', 'Mês venda'], errors='ignore')
 
-    appointments_cortesy["Custo_Fixo"] = appointments_cortesy['Tempo'] * (appointments_cortesy['Taxa Ociosidade (Min)'] + appointments_cortesy['Taxa Sala (Min)'])
+    #appointments_cortesy["Custo_Fixo"] = appointments_cortesy['Tempo'] * (appointments_cortesy['Taxa Ociosidade (Min)'] + appointments_cortesy['Taxa Sala (Min)'])
 
-    #appointments_cortesy["Custo_Fixo"] = 0
+    appointments_cortesy["Custo_Fixo"] = 0
 
     appointments_cortesy = appointments_cortesy.drop(columns=['Taxa Ociosidade (Min)','Taxa Sala (Min)'],errors='ignore')
 
