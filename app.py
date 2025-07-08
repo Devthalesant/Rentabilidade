@@ -11,14 +11,20 @@ st.set_page_config(
 )
 
 def main():
-    """
-    Main function for the application.
+    # Autenticação simples usando secrets.toml
+    password = st.sidebar.text_input("Digite a senha:", type="password")
+
+    # Verifica se uma senha foi inserida
+    if not password:
+        st.error("Por favor, insira a senha.")
+        st.stop()  # Para a execução aqui se a senha não for fornecida
+
+    # Verifica se a senha está correta
+    if password != st.secrets["credentials"]["password"]:
+        st.error("Senha incorreta!")
+        st.stop()  # Para a execução se a senha estiver errada
+    # Define o menu se a senha estiver correta
     
-    This function defines the menu structure of the application and uses Streamlit's 
-    sidebar to let the user select a category and a page. It then calls the function 
-    associated with the selected page.
-    """
-    # Define the menu structure
     menu_structure = {
         "Análises Rentabilidade": {
             "1 - 2024": page_analyse_2024,
@@ -27,9 +33,8 @@ def main():
         "Análise De Cortesia": {
             "1 - Período" : courtesy_period
         },
-
         "Admin": {
-            "1 - Atualizar Base de Dados":atualizar_banco_de_dados,
+            "1 - Atualizar Base de Dados": atualizar_banco_de_dados,
         }
     }
 
