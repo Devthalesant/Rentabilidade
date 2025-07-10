@@ -282,7 +282,7 @@ def page_analyse_2025():
 
         # Formatar porcentagens
         df_analise_preju_final['Lucro/Prejuízo Agregado %'] = df_agrupado['Lucro/Prejuízo Agregado %'].apply(lambda x: f"{x:.2f}%")
-        df_analise_preju_final['Lucro sem Custo Fixo %'] = df_agrupado['Lucro sem Custo Fixo %'].apply(lambda x: f"{x:.2f}%")
+        df_analise_preju_final['Lucro sem Custo Fixo %'] = df_analise_preju_final['Lucro sem Custo Fixo %'].apply(lambda x: f"{x:.2f}%")
 
         # Resetar índice
         df_analise_preju_final.reset_index(drop=True, inplace=True)
