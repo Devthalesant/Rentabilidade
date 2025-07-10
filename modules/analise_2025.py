@@ -261,7 +261,7 @@ def page_analyse_2025():
             'Receita Procedimento',
             'Quantidade', 
             'Quantidade_cortesia',
-            'Custo Direto Procedimento'
+            'Custo Direto Procedimento',
             'Prejuízo Procedimento',
             'Receita Total Clientes',
             'Custo Total Clientes',
