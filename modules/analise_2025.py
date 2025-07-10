@@ -286,8 +286,8 @@ def page_analyse_2025():
         st.dataframe(
             df_analise_preju_final,
             column_config={
-                'Quantidade': st.column_config.NumberColumn("Total Procedures"),
-                'Quantidade_cortesia': st.column_config.NumberColumn("Courtesy Procedures")
+                'Quantidade': st.column_config.NumberColumn("Total de Procedimetos"),
+                'Quantidade_cortesia': st.column_config.NumberColumn("Procedimentos Cortesia")
          },
     hide_index=True
 )
