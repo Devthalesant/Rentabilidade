@@ -106,8 +106,10 @@ def page_analyse_2025():
         lucros = df_gp[df_gp['Lucro'] > 0].sort_values(by='Lucro', ascending=False)
         prejuizos = df_gp[df_gp['Lucro'] < 0].sort_values(by='Lucro')
         quantidade_total = df_gp['Quantidade'].sum()
-        tempo_total = df_gp['Tempo Utilizado'].sum() 
+        tempo_total = df_gp['Tempo Utilizado'].sum()
+        taxa_ociosidade_view = df_gp_ociosidade['Taxa Ociosidade'].mean()
 
+        st.write(taxa_ociosidade_view)
 
         # Exibir Receita Gerada Total
         if receita_total > custo_total:
