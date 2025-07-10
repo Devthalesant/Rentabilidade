@@ -217,7 +217,7 @@ def page_analyse_2025():
         df_agrupado = df.groupby('Procedimento_padronizado').agg({
             'Valor liquido item': 'sum',  # Revenue
             'Lucro': 'sum',               # Profit/Loss
-            'Custo Direto Total' : 'sum'
+            'Custo Direto Total' : 'sum',
             'Quantidade': 'sum',          # Total quantity
             'Cortesia?': lambda x: df.loc[x.index, 'Quantidade'][x == True].sum()  # Courtesy quantity
         }).rename(columns={
