@@ -68,10 +68,16 @@ def page_analyse_2024():
             "Custo Fixo" : "sum",
             "Custo Total" : "sum",
             "Lucro": "sum",
-            "Tempo Utilizado": "sum"
+            "Tempo Utilizado": "sum",
         }).reset_index()
         df_gp = df_gp.rename(columns={'Valor liquido item' : 'Receita Gerada','Valor unitário' : 'Preço Praticado'})
+
+        df_gp_ociosidade = df.groupby(["Unidade","Mês venda"]).agg({"Minutos Disponivel" : "first", "Tempo Ocioso" : "first"})
+        df_gp_ociosidade["Taxa Ociosidade"] = df_gp_ociosidade['Tempo Ocioso'] / df_gp_ociosidade['Minutos Disponivel'] * 100
         
+        # Merging to get the idle rate
+
+
         # Calculating Contribuition Margin
         df_gp["Margem de Contribuição %"] = np.where(df_gp['Receita Gerada'] != 0,
         (df_gp['Receita Gerada'] - df_gp['Custo Direto Total'] - df_gp['Custo Sobre Venda Final']) / df_gp['Receita Gerada'] * 100, 0)
@@ -95,8 +101,8 @@ def page_analyse_2024():
         lucros = df_gp[df_gp['Lucro'] > 0].sort_values(by='Lucro', ascending=False)
         prejuizos = df_gp[df_gp['Lucro'] < 0].sort_values(by='Lucro')
         quantidade_total = df_gp['Quantidade'].sum()
-        tempo_total = df_gp['Tempo Utilizado'].sum() 
-
+        tempo_total = df_gp['Tempo Utilizado'].sum()
+        taxa_ociosidade_view = df_gp_ociosidade['Taxa Ociosidade'].mean()
 
         # Exibir Receita Gerada Total
         if receita_total > custo_total:
@@ -123,6 +129,9 @@ def page_analyse_2024():
             st.markdown(f"<h3 style='color:black; text-align:center;'>Quantidade Total: {quantidade_total:,.0f}".replace(",", ".") + "</h3>", unsafe_allow_html=True)
         with col2:
             st.markdown(f"<h3 style='color:black; text-align:center;'>Tempo Total(Min): {tempo_total:,.0f}".replace(",",".") + "</h3>", unsafe_allow_html=True)
+
+        st.markdown(f"<h3 style='color:black; text-align:center;'>Taxa Ociosidade (%): {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)
+
             
 
 
