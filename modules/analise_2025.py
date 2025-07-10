@@ -73,9 +73,13 @@ def page_analyse_2025():
             "Custo Fixo" : "sum",
             "Custo Total" : "sum",
             "Lucro": "sum",
-            "Tempo Utilizado": "sum"
+            "Tempo Utilizado": "sum",
         }).reset_index()
         df_gp = df_gp.rename(columns={'Valor liquido item' : 'Receita Gerada','Valor unitário' : 'Preço Praticado'})
+
+        df_gp_ociosidade = df.groupby(["Unidade","Mês venda"]).agg({"Tempo Ocioso" : "first"})
+
+        st.dataframe(df_gp_ociosidade)
         
         # Calculating Contribuition Margin
         df_gp["Margem de Contribuição %"] = np.where(df_gp['Receita Gerada'] != 0,
