@@ -77,8 +77,11 @@ def page_analyse_2025():
         }).reset_index()
         df_gp = df_gp.rename(columns={'Valor liquido item' : 'Receita Gerada','Valor unitário' : 'Preço Praticado'})
 
-        df_gp_ociosidade = df.groupby(["Unidade","Mês venda"]).agg({"Tempo Ocioso" : "first"})
+        df_gp_ociosidade = df.groupby(["Unidade","Mês venda"]).agg({"Minutos Disponivel" : "first", "Tempo Ocioso" : "first"})
         
+        # Merging to get the idle rate
+
+
         # Calculating Contribuition Margin
         df_gp["Margem de Contribuição %"] = np.where(df_gp['Receita Gerada'] != 0,
         (df_gp['Receita Gerada'] - df_gp['Custo Direto Total'] - df_gp['Custo Sobre Venda Final']) / df_gp['Receita Gerada'] * 100, 0)

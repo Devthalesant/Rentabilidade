@@ -183,6 +183,7 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
     df_taxa_sala_ociosidade = df_merged_cf.groupby(['Unidade', 'Mês']).agg({
         'Taxa Sala (Min)': 'first',
         'Taxa Ociosidade (Min)': 'first',
+        'Minutos Disponivel' : 'first',
         'Tempo Ocioso' : 'first'
         }).reset_index()
     
