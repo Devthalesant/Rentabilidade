@@ -134,9 +134,9 @@ def page_analyse_2025():
             st.markdown(f"<h3 style='color:black; text-align:center;'>Quantidade Total: {quantidade_total:,.0f}".replace(",", ".") + "</h3>", unsafe_allow_html=True)
         with col2:
             if taxa_ociosidade_view < 40:
-                st.markdown(f"<h3 style='color:{'green'}; text-align:center;'>Taxa Ociosidade (%): {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='color:{'green'}; text-align:center;'>Taxa Ociosidade: {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)
             else:
-                st.markdown(f"<h3 style='color:{'red'}; text-align:center;'>Taxa Ociosidade (%): {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)            
+                st.markdown(f"<h3 style='color:{'red'}; text-align:center;'>Taxa Ociosidade: {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)            
         with col3:
             st.markdown(f"<h3 style='color:black; text-align:center;'>Tempo Total(Min): {tempo_total:,.0f}".replace(",",".") + "</h3>", unsafe_allow_html=True)
 
