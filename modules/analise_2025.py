@@ -135,7 +135,7 @@ def page_analyse_2025():
         with col2:
             st.markdown(f"<h3 style='color:black; text-align:center;'>Tempo Total(Min): {tempo_total:,.0f}".replace(",",".") + "</h3>", unsafe_allow_html=True)
 
-        st.markdown(f"<h3 style='color:black; text-align:center;'>Taxa Ociosidade (%): %{taxa_ociosidade_view:,.0f}"+ "</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color:black; text-align:center;'>Taxa Ociosidade (%): {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)
 
         format_dict = {
             'Lucro': 'R$ {:,.2f}'.format,
