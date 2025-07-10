@@ -269,28 +269,21 @@ def page_analyse_2025():
             'Lucro/Prejuízo Agregado %'
         ]]
 
+        df_analise_preju_final["Lucro sem Custo direto"] = df_analise_preju_final['Lucro/Prejuízo Agregado %'] + df_analise_preju_final["Custo Direto Procedimento"]
+
         # Ordenar por maior prejuízo (menor lucro)
         df_analise_preju_final = df_analise_preju_final.sort_values('Lucro/Prejuízo Agregado', ascending=True)
 
-        df_analise_preju_final["Lucro sem Custo direto"] = df_analise_preju_final['Lucro/Prejuízo Agregado'] + df_analise_preju_final["Custo Direto Procedimento"]
-
-        #df_analise_preju_final["Lucro sem Custo direto %"] = (df_analise_preju_final["Lucro sem Custo direto"] / df_agrupado['Receita Total Clientes']) * 100
-
         # Formatar valores monetários
         for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
-                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado','Lucro sem Custo direto']:
+                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado']:
             df_analise_preju_final[col] = df_analise_preju_final[col].apply(lambda x: f"R${x:,.2f}")
-        
-        # Formatar novas colunas
-        #df_analise_preju_final["Lucro sem Custo direto %"] = df_agrupado["Lucro sem Custo direto %"].apply(lambda x: f"{x:.2f}%")
 
         # Formatar porcentagens
         df_analise_preju_final['Lucro/Prejuízo Agregado %'] = df_agrupado['Lucro/Prejuízo Agregado %'].apply(lambda x: f"{x:.2f}%")
 
         # Resetar índice
         df_analise_preju_final.reset_index(drop=True, inplace=True)
-
-
 
         st.dataframe(
             df_analise_preju_final,
