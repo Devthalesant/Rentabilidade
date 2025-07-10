@@ -10,10 +10,14 @@ from Functions.mongo import *
 import io
 
 def page_analyse_2024():
-        
-        custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custo_fixo_2024")
+        # Carrega o df
+
+        #vmb_concat_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv"
+        #custo_fixo_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Custos Fixos/2024/CF-txSala_Mensal.xlsx"
+
+        custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custos_fixos_2024")
         vmb_concat = pegar_dados_mongodb("rentabilidade_anual","venda_mensal_bruta_2024")
-        df_taxas = pegar_dados_mongodb("rentabilidade_anual","impostos_taxas_2024")        
+        df_taxas = pegar_dados_mongodb("rentabilidade_anual","impostos_taxas_2024")
 
         df_final = criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas)
         
@@ -23,7 +27,8 @@ def page_analyse_2024():
             "TODAS COMPILADAS", "ALPHAVILLE", "CAMPINAS", "COPACABANA", "GUARULHOS",
             "JARDINS", "LAPA", "LONDRINA", "MOOCA", "MOEMA", "OSASCO", "IPIRANGA","ITAIM",
             "SÃO BERNARDO", "SANTO AMARO","SOROCABA", "SANTOS", "TIJUCA", "TATUAPÉ", "TUCURUVI",
-            "VILA MASCOTE"]
+            "VILA MASCOTE"
+        ]
         
         time_options = [
             'Anual','Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho',
@@ -68,10 +73,16 @@ def page_analyse_2024():
             "Custo Fixo" : "sum",
             "Custo Total" : "sum",
             "Lucro": "sum",
-            "Tempo Utilizado": "sum"
+            "Tempo Utilizado": "sum",
         }).reset_index()
         df_gp = df_gp.rename(columns={'Valor liquido item' : 'Receita Gerada','Valor unitário' : 'Preço Praticado'})
+
+        df_gp_ociosidade = df.groupby(["Unidade","Mês venda"]).agg({"Minutos Disponivel" : "first", "Tempo Ocioso" : "first"})
+        df_gp_ociosidade["Taxa Ociosidade"] = df_gp_ociosidade['Tempo Ocioso'] / df_gp_ociosidade['Minutos Disponivel'] * 100
         
+        # Merging to get the idle rate
+
+
         # Calculating Contribuition Margin
         df_gp["Margem de Contribuição %"] = np.where(df_gp['Receita Gerada'] != 0,
         (df_gp['Receita Gerada'] - df_gp['Custo Direto Total'] - df_gp['Custo Sobre Venda Final']) / df_gp['Receita Gerada'] * 100, 0)
@@ -95,8 +106,8 @@ def page_analyse_2024():
         lucros = df_gp[df_gp['Lucro'] > 0].sort_values(by='Lucro', ascending=False)
         prejuizos = df_gp[df_gp['Lucro'] < 0].sort_values(by='Lucro')
         quantidade_total = df_gp['Quantidade'].sum()
-        tempo_total = df_gp['Tempo Utilizado'].sum() 
-
+        tempo_total = df_gp['Tempo Utilizado'].sum()
+        taxa_ociosidade_view = df_gp_ociosidade['Taxa Ociosidade'].mean()
 
         # Exibir Receita Gerada Total
         if receita_total > custo_total:
@@ -123,8 +134,8 @@ def page_analyse_2024():
             st.markdown(f"<h3 style='color:black; text-align:center;'>Quantidade Total: {quantidade_total:,.0f}".replace(",", ".") + "</h3>", unsafe_allow_html=True)
         with col2:
             st.markdown(f"<h3 style='color:black; text-align:center;'>Tempo Total(Min): {tempo_total:,.0f}".replace(",",".") + "</h3>", unsafe_allow_html=True)
-            
 
+        st.markdown(f"<h3 style='color:black; text-align:center;'>Taxa Ociosidade (%): {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)
 
         format_dict = {
             'Lucro': 'R$ {:,.2f}'.format,
@@ -212,6 +223,7 @@ def page_analyse_2024():
         df_agrupado = df.groupby('Procedimento_padronizado').agg({
             'Valor liquido item': 'sum',  # Revenue
             'Lucro': 'sum',               # Profit/Loss
+            'Custo Fixo' : 'sum',
             'Quantidade': 'sum',          # Total quantity
             'Cortesia?': lambda x: df.loc[x.index, 'Quantidade'][x == True].sum()  # Courtesy quantity
         }).rename(columns={
@@ -245,7 +257,8 @@ def page_analyse_2024():
         # Renomear colunas para clareza
         df_agrupado = df_agrupado.rename(columns={
             'Valor liquido item': 'Receita Procedimento',
-            'Lucro': 'Prejuízo Procedimento'
+            'Lucro': 'Prejuízo Procedimento',
+            'Custo Fixo' : 'Custo Fixo Procedimento'
         })
 
         # Selecionar e ordenar colunas
@@ -254,6 +267,7 @@ def page_analyse_2024():
             'Receita Procedimento',
             'Quantidade', 
             'Quantidade_cortesia',
+            'Custo Fixo Procedimento',
             'Prejuízo Procedimento',
             'Receita Total Clientes',
             'Custo Total Clientes',
@@ -261,16 +275,20 @@ def page_analyse_2024():
             'Lucro/Prejuízo Agregado %'
         ]]
 
+        df_analise_preju_final["Lucro sem Custo Fixo"] = df_analise_preju_final['Lucro/Prejuízo Agregado'] + df_analise_preju_final["Custo Fixo Procedimento"]
+        df_analise_preju_final["Lucro sem Custo Fixo %"] = (df_analise_preju_final['Lucro sem Custo Fixo'] / df_analise_preju_final['Receita Total Clientes']) * 100
+
         # Ordenar por maior prejuízo (menor lucro)
         df_analise_preju_final = df_analise_preju_final.sort_values('Lucro/Prejuízo Agregado', ascending=True)
 
         # Formatar valores monetários
         for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
-                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado']:
+                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado','Lucro sem Custo Fixo','Custo Fixo Procedimento']:
             df_analise_preju_final[col] = df_analise_preju_final[col].apply(lambda x: f"R${x:,.2f}")
 
         # Formatar porcentagens
         df_analise_preju_final['Lucro/Prejuízo Agregado %'] = df_agrupado['Lucro/Prejuízo Agregado %'].apply(lambda x: f"{x:.2f}%")
+        df_analise_preju_final['Lucro sem Custo Fixo %'] = df_analise_preju_final['Lucro sem Custo Fixo %'].apply(lambda x: f"{x:.2f}%")
 
         # Resetar índice
         df_analise_preju_final.reset_index(drop=True, inplace=True)
@@ -278,11 +296,12 @@ def page_analyse_2024():
         st.dataframe(
             df_analise_preju_final,
             column_config={
-                'Quantidade': st.column_config.NumberColumn("Total Procedures"),
-                'Quantidade_cortesia': st.column_config.NumberColumn("Courtesy Procedures")
+                'Quantidade': st.column_config.NumberColumn("Total de Procedimetos"),
+                'Quantidade_cortesia': st.column_config.NumberColumn("Procedimentos Cortesia")
          },
     hide_index=True
 )
+
         ## Dataframe por unidade:
         df_groupby_unidade = df.groupby(["Unidade"]).agg({"Valor liquido item" : "sum","Custo Direto Total" : "sum",
                                                         "Custo Total" : "sum"}).reset_index()
@@ -345,7 +364,7 @@ def page_analyse_2024():
                 base_excel = to_excel_bytes(df_database)
                 
                 st.write("Processando Dados Agregados...")
-                preju_agregados_excel = to_excel_bytes(df_prejuizo)
+                preju_agregados_excel = to_excel_bytes(df_agrupado)
                 
                 st.write("Processando Análise por Unidade...")
                 analise_unidades = to_excel_bytes(df_groupby_unidade)
