@@ -78,6 +78,7 @@ def page_analyse_2025():
         df_gp = df_gp.rename(columns={'Valor liquido item' : 'Receita Gerada','Valor unitário' : 'Preço Praticado'})
 
         df_gp_ociosidade = df.groupby(["Unidade","Mês venda"]).agg({"Minutos Disponivel" : "first", "Tempo Ocioso" : "first"})
+        df_gp_ociosidade["Taxa Ociosidade"] = df_gp_ociosidade['Tempo Ocioso'] / df_gp_ociosidade['Minutos Disponivel'] * 100
         
         # Merging to get the idle rate
 
