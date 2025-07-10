@@ -124,13 +124,18 @@ def page_analyse_2024():
             st.markdown(f"<h3 style='color:{color}; text-align:center;'>Prejuízo Total: R$ {lucro_total:,.2f}</h3>", unsafe_allow_html=True)
         
         # Exibir outros KPI´s
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             st.markdown(f"<h3 style='color:black; text-align:center;'>Quantidade Total: {quantidade_total:,.0f}".replace(",", ".") + "</h3>", unsafe_allow_html=True)
         with col2:
+            if taxa_ociosidade_view > 40:
+                st.markdown(f"<h3 style='color:{'green'}; text-align:center;'>Taxa Ociosidade (%): {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<h3 style='color:{'green'}; text-align:center;'>Taxa Ociosidade (%): {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)            
+        with col3:
             st.markdown(f"<h3 style='color:black; text-align:center;'>Tempo Total(Min): {tempo_total:,.0f}".replace(",",".") + "</h3>", unsafe_allow_html=True)
+            
 
-        st.markdown(f"<h3 style='color:black; text-align:center;'>Taxa Ociosidade (%): {taxa_ociosidade_view:,.2f}%"+ "</h3>", unsafe_allow_html=True)
 
             
 
