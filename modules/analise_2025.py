@@ -270,7 +270,7 @@ def page_analyse_2025():
         ]]
 
         df_analise_preju_final["Lucro sem Custo Fixo"] = df_analise_preju_final['Lucro/Prejuízo Agregado'] + df_analise_preju_final["Custo Fixo Procedimento"]
-        df_analise_preju_final["Lucro sem Custo Fixo %"] = (df_agrupado['Lucro sem Custo Fixo'] / df_agrupado['Receita Total Clientes']) * 100
+        df_analise_preju_final["Lucro sem Custo Fixo %"] = (df_analise_preju_final['Lucro sem Custo Fixo'] / df_analise_preju_final['Receita Total Clientes']) * 100
 
         # Ordenar por maior prejuízo (menor lucro)
         df_analise_preju_final = df_analise_preju_final.sort_values('Lucro/Prejuízo Agregado', ascending=True)
