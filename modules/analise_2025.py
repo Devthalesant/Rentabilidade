@@ -252,7 +252,7 @@ def page_analyse_2025():
         df_agrupado = df_agrupado.rename(columns={
             'Valor liquido item': 'Receita Procedimento',
             'Lucro': 'Prejuízo Procedimento',
-            'Custo Direto Total' : 'Custo Direto Procedimento'
+            'Custo Fixo' : 'Custo Fixo Procedimento'
         })
 
         # Selecionar e ordenar colunas
@@ -261,7 +261,7 @@ def page_analyse_2025():
             'Receita Procedimento',
             'Quantidade', 
             'Quantidade_cortesia',
-            'Custo Direto Procedimento',
+            'Custo Fixo Procedimento',
             'Prejuízo Procedimento',
             'Receita Total Clientes',
             'Custo Total Clientes',
@@ -269,7 +269,7 @@ def page_analyse_2025():
             'Lucro/Prejuízo Agregado %'
         ]]
 
-        df_analise_preju_final["Lucro sem Custo direto"] = df_analise_preju_final['Lucro/Prejuízo Agregado'] + df_analise_preju_final["Custo Direto Procedimento"]
+        df_analise_preju_final["Lucro sem Custo Fixo"] = df_analise_preju_final['Lucro/Prejuízo Agregado'] + df_analise_preju_final["Custo Fixo Procedimento"]
 
         # Ordenar por maior prejuízo (menor lucro)
         df_analise_preju_final = df_analise_preju_final.sort_values('Lucro/Prejuízo Agregado', ascending=True)
