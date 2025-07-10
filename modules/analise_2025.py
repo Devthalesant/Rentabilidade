@@ -78,8 +78,6 @@ def page_analyse_2025():
         df_gp = df_gp.rename(columns={'Valor liquido item' : 'Receita Gerada','Valor unitário' : 'Preço Praticado'})
 
         df_gp_ociosidade = df.groupby(["Unidade","Mês venda"]).agg({"Tempo Ocioso" : "first"})
-
-        st.dataframe(df_gp_ociosidade)
         
         # Calculating Contribuition Margin
         df_gp["Margem de Contribuição %"] = np.where(df_gp['Receita Gerada'] != 0,
@@ -133,7 +131,7 @@ def page_analyse_2025():
         with col2:
             st.markdown(f"<h3 style='color:black; text-align:center;'>Tempo Total(Min): {tempo_total:,.0f}".replace(",",".") + "</h3>", unsafe_allow_html=True)
             
-
+        st.dataframe(df_gp_ociosidade)
 
         format_dict = {
             'Lucro': 'R$ {:,.2f}'.format,
