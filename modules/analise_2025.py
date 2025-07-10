@@ -217,10 +217,12 @@ def page_analyse_2025():
         df_agrupado = df.groupby('Procedimento_padronizado').agg({
             'Valor liquido item': 'sum',  # Revenue
             'Lucro': 'sum',               # Profit/Loss
+            'Custo Total':'sum',
             'Quantidade': 'sum',          # Total quantity
             'Cortesia?': lambda x: df.loc[x.index, 'Quantidade'][x == True].sum()  # Courtesy quantity
         }).rename(columns={
             'Valor liquido item': 'Receita Procedimento',
+            'Custo Total' : 'Custo Procedimento',
             'Lucro': 'Prejuízo Procedimento',
             'Cortesia?': 'Quantidade_cortesia'
         }).reset_index()
@@ -257,6 +259,7 @@ def page_analyse_2025():
         df_analise_preju_final = df_agrupado[[
             'Procedimento_padronizado',
             'Receita Procedimento',
+            'Custo Procedimento',
             'Quantidade', 
             'Quantidade_cortesia',
             'Prejuízo Procedimento',
