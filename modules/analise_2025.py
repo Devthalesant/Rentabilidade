@@ -269,7 +269,7 @@ def page_analyse_2025():
             'Lucro/Prejuízo Agregado %'
         ]]
 
-        df_analise_preju_final["Lucro sem Custo direto"] = df_analise_preju_final['Lucro/Prejuízo Agregado %'] + df_analise_preju_final["Custo Direto Procedimento"]
+        df_analise_preju_final["Lucro sem Custo direto"] = df_analise_preju_final['Lucro/Prejuízo Agregado'] + df_analise_preju_final["Custo Direto Procedimento"]
 
         # Ordenar por maior prejuízo (menor lucro)
         df_analise_preju_final = df_analise_preju_final.sort_values('Lucro/Prejuízo Agregado', ascending=True)
