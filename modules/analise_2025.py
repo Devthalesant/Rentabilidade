@@ -283,11 +283,9 @@ def page_analyse_2025():
         # Resetar índice
         df_analise_preju_final.reset_index(drop=True, inplace=True)
 
-        df_analise_preju_final["Lucro sem Custo direto"] = df_analise_preju_final['Lucro/Prejuízo Agregado %'] 
-        + df_analise_preju_final["Custo Direto Procedimento"]
+        df_analise_preju_final["Lucro sem Custo direto"] = df_analise_preju_final['Lucro/Prejuízo Agregado %'] + df_analise_preju_final["Custo Direto Procedimento"]
 
-        df_analise_preju_final["Lucro sem Custo direto %"] = df_analise_preju_final
-        ["Lucro sem Custo direto"] / df_agrupado['Receita Total Clientes'] * 100
+        df_analise_preju_final["Lucro sem Custo direto %"] = df_analise_preju_final["Lucro sem Custo direto"] / df_agrupado['Receita Total Clientes'] * 100
 
         # Formatar novas colunas
         df_analise_preju_final["Lucro sem Custo direto %"] = df_agrupado["Lucro sem Custo direto %"].apply(lambda x: f"{x:.2f}%")
