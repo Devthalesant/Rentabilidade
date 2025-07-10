@@ -212,6 +212,7 @@ def page_analyse_2024():
         df_agrupado = df.groupby('Procedimento_padronizado').agg({
             'Valor liquido item': 'sum',  # Revenue
             'Lucro': 'sum',               # Profit/Loss
+            'Custo Fixo' : 'sum',
             'Quantidade': 'sum',          # Total quantity
             'Cortesia?': lambda x: df.loc[x.index, 'Quantidade'][x == True].sum()  # Courtesy quantity
         }).rename(columns={
@@ -245,7 +246,8 @@ def page_analyse_2024():
         # Renomear colunas para clareza
         df_agrupado = df_agrupado.rename(columns={
             'Valor liquido item': 'Receita Procedimento',
-            'Lucro': 'Prejuízo Procedimento'
+            'Lucro': 'Prejuízo Procedimento',
+            'Custo Fixo' : 'Custo Fixo Procedimento'
         })
 
         # Selecionar e ordenar colunas
@@ -254,6 +256,7 @@ def page_analyse_2024():
             'Receita Procedimento',
             'Quantidade', 
             'Quantidade_cortesia',
+            'Custo Fixo Procedimento',
             'Prejuízo Procedimento',
             'Receita Total Clientes',
             'Custo Total Clientes',
@@ -261,16 +264,20 @@ def page_analyse_2024():
             'Lucro/Prejuízo Agregado %'
         ]]
 
+        df_analise_preju_final["Lucro sem Custo Fixo"] = df_analise_preju_final['Lucro/Prejuízo Agregado'] + df_analise_preju_final["Custo Fixo Procedimento"]
+        df_analise_preju_final["Lucro sem Custo Fixo %"] = (df_analise_preju_final['Lucro sem Custo Fixo'] / df_analise_preju_final['Receita Total Clientes']) * 100
+
         # Ordenar por maior prejuízo (menor lucro)
         df_analise_preju_final = df_analise_preju_final.sort_values('Lucro/Prejuízo Agregado', ascending=True)
 
         # Formatar valores monetários
         for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
-                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado']:
+                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado','Lucro sem Custo Fixo','Custo Fixo Procedimento']:
             df_analise_preju_final[col] = df_analise_preju_final[col].apply(lambda x: f"R${x:,.2f}")
 
         # Formatar porcentagens
         df_analise_preju_final['Lucro/Prejuízo Agregado %'] = df_agrupado['Lucro/Prejuízo Agregado %'].apply(lambda x: f"{x:.2f}%")
+        df_analise_preju_final['Lucro sem Custo Fixo %'] = df_analise_preju_final['Lucro sem Custo Fixo %'].apply(lambda x: f"{x:.2f}%")
 
         # Resetar índice
         df_analise_preju_final.reset_index(drop=True, inplace=True)
@@ -278,8 +285,8 @@ def page_analyse_2024():
         st.dataframe(
             df_analise_preju_final,
             column_config={
-                'Quantidade': st.column_config.NumberColumn("Total Procedures"),
-                'Quantidade_cortesia': st.column_config.NumberColumn("Courtesy Procedures")
+                'Quantidade': st.column_config.NumberColumn("Total de Procedimetos"),
+                'Quantidade_cortesia': st.column_config.NumberColumn("Procedimentos Cortesia")
          },
     hide_index=True
 )
