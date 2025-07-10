@@ -277,11 +277,12 @@ def page_analyse_2025():
 
         # Formatar valores monetários
         for col in ['Receita Procedimento', 'Prejuízo Procedimento', 
-                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado']:
+                    'Receita Total Clientes', 'Custo Total Clientes', 'Lucro/Prejuízo Agregado','Lucro sem Custo Fixo']:
             df_analise_preju_final[col] = df_analise_preju_final[col].apply(lambda x: f"R${x:,.2f}")
 
         # Formatar porcentagens
         df_analise_preju_final['Lucro/Prejuízo Agregado %'] = df_agrupado['Lucro/Prejuízo Agregado %'].apply(lambda x: f"{x:.2f}%")
+        df_analise_preju_final['Lucro sem Custo Fixo %'] = df_agrupado['Lucro sem Custo Fixo %'].apply(lambda x: f"{x:.2f}%")
 
         # Resetar índice
         df_analise_preju_final.reset_index(drop=True, inplace=True)
