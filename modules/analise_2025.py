@@ -109,8 +109,6 @@ def page_analyse_2025():
         tempo_total = df_gp['Tempo Utilizado'].sum()
         taxa_ociosidade_view = df_gp_ociosidade['Taxa Ociosidade'].mean()
 
-        st.write(taxa_ociosidade_view)
-
         # Exibir Receita Gerada Total
         if receita_total > custo_total:
             color = 'green'
@@ -136,8 +134,8 @@ def page_analyse_2025():
             st.markdown(f"<h3 style='color:black; text-align:center;'>Quantidade Total: {quantidade_total:,.0f}".replace(",", ".") + "</h3>", unsafe_allow_html=True)
         with col2:
             st.markdown(f"<h3 style='color:black; text-align:center;'>Tempo Total(Min): {tempo_total:,.0f}".replace(",",".") + "</h3>", unsafe_allow_html=True)
-            
-        st.dataframe(df_gp_ociosidade)
+
+        st.markdown(f"<h3 style='color:black; text-align:center;'>Taxa Ociosidade (%): %{taxa_ociosidade_view:,.0f}"+ "</h3>", unsafe_allow_html=True)
 
         format_dict = {
             'Lucro': 'R$ {:,.2f}'.format,
