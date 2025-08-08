@@ -1,0 +1,28 @@
+    query FetchCustomers(
+    $currentPage: Int!
+    $perPage: Int!
+    )
+     {
+        fetchCustomers(pagination: { currentPage: $currentPage, perPage: $perPage }) {
+            data {
+                id
+                name
+                bills {
+                    id
+                    paidAt
+                    quote {
+                        id
+                        procedures {
+                            groupLabel
+                            name
+                        }
+                    }
+                }
+            }     
+            meta {
+                currentPage
+                lastPage
+            }
+        }
+    }
+
