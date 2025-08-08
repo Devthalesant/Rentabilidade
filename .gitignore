@@ -2,4 +2,4 @@ venv/
 Bases/
 auth/
 .streamlit/secrets.toml
-.Functions/fetch_api_crm.py
+Functions/fetch_api_crm.py
