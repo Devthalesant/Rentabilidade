@@ -279,6 +279,7 @@ def obter_dicionarios():
         'RENUVA SESSÃO' : 'LAVIEEN',
         'CO2 SESSÃO 1/2 AREA (JARDINS)': 'CO2 MÃOS',
         'RADIOFREQUÊNCIA SESSÃO' : 'RADIOFREQUÊNCIA',
+        'CARBOXITERAPIA SESSÃO' :  'CARBOXITERAPIA',
     }
 
 
@@ -491,7 +492,8 @@ def obter_dicionarios():
         'LASER REJUVENESCEDOR (LAVIEEN/RENUVA) SESSÃO':'LAVIEEN',
         'RENUVA SESSÃO' : 'LAVIEEN',
         'CO2 SESSÃO 1/2 AREA (JARDINS)': 'CO2 MÃOS',
-        'RADIOFREQUÊNCIA SESSÃO' : 'RADIOFREQUÊNCIA'   
+        'RADIOFREQUÊNCIA SESSÃO' : 'RADIOFREQUÊNCIA',
+        'CARBOXITERAPIA SESSÃO' :  'CARBOXITERAPIA',
     }
 
     Month_dic = {
