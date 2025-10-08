@@ -280,6 +280,8 @@ def obter_dicionarios():
         'CO2 SESSÃO 1/2 AREA (JARDINS)': 'CO2 MÃOS',
         'RADIOFREQUÊNCIA SESSÃO' : 'RADIOFREQUÊNCIA',
         'CARBOXITERAPIA SESSÃO' :  'CARBOXITERAPIA',
+        'PEELING COREANO SESSÃO' : 'PEELING COREANO',
+        'PEELING COREANO SESSÃO CORTESIA' : 'PEELING COREANO',
     }
 
 
@@ -494,6 +496,8 @@ def obter_dicionarios():
         'CO2 SESSÃO 1/2 AREA (JARDINS)': 'CO2 MÃOS',
         'RADIOFREQUÊNCIA SESSÃO' : 'RADIOFREQUÊNCIA',
         'CARBOXITERAPIA SESSÃO' :  'CARBOXITERAPIA',
+        'PEELING COREANO SESSÃO' : 'PEELING COREANO',
+        'PEELING COREANO SESSÃO CORTESIA' : 'PEELING COREANO',
     }
 
     Month_dic = {
@@ -584,6 +588,7 @@ def obter_dicionarios():
     'RETORNO' : '00:05:00',
     'AVALIAÇÃO' : '00:15:00',
     'SKINBOOSTER' : '00:30:00',
+    'PEELING COREANO':'00:30:00',
     }
 
     all_costs_2024 = {
@@ -718,7 +723,8 @@ def obter_dicionarios():
     "SERUM HYALU TGF REPAIR" : {"CUSTO TOTAL": 152.90, "CUSTO PRODUTO": 152.90, "MOD": 0.0, "CUSTO INSUMOS": 0.0},
     "CREME POUR LE COU" : {"CUSTO TOTAL": 141.90, "CUSTO PRODUTO": 141.90, "MOD": 0.0, "CUSTO INSUMOS": 0.0},
     "DRENAGEM (30 MIN)": {"CUSTO TOTAL": 17.26, "CUSTO PRODUTO": 2.4, "MOD": 11.65, "CUSTO INSUMOS": 3.21},
-    "SKINBOOSTER": {"CUSTO TOTAL": 279.11, "CUSTO PRODUTO": 199.00, "MOD": 60.0, "CUSTO INSUMOS": 20.11}, 
+    "SKINBOOSTER": {"CUSTO TOTAL": 279.11, "CUSTO PRODUTO": 199.00, "MOD": 60.0, "CUSTO INSUMOS": 20.11},
+    "PEELING COREANO": {"CUSTO TOTAL": 35.86, "CUSTO PRODUTO": 9.72, "MOD": 23.30, "CUSTO INSUMOS": 2.84}, 
     }
 
     return Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024, all_costs_2025
