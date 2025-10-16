@@ -282,7 +282,6 @@ def obter_dicionarios():
         'CARBOXITERAPIA SESSÃO' :  'CARBOXITERAPIA',
         'PEELING COREANO SESSÃO' : 'PEELING COREANO',
         'PEELING COREANO SESSÃO CORTESIA' : 'PEELING COREANO',
-        'update_de_teste' : 'teste',
     }
 
 
