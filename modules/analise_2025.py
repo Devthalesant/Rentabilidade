@@ -9,15 +9,27 @@ from Functions.dictionaries import obter_dicionarios
 from Functions.mongo import *
 import io
 
+@st.cache_data(ttl=3600)  # Cache por 1 hora
+def carregar_custo_fixo():
+    return pegar_dados_mongodb("rentabilidade_anual", "custos_fixos_2025")
+
+@st.cache_data(ttl=3600)
+def carregar_vmb():
+    return pegar_dados_mongodb("rentabilidade_anual", "venda_mensal_bruta_2025")
+
+@st.cache_data(ttl=3600)
+def carregar_taxas():
+    return pegar_dados_mongodb("rentabilidade_anual", "impostos_taxas_2025")
+
+
+
+
 def page_analyse_2025():
         # Carrega o df
 
-        #vmb_concat_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Venda Mesal Bruta/2025/vmb_2025_concat.csv"
-        #custo_fixo_path = "C:/Users/novo1/OneDrive/Desktop/Dev/Rentabilidade Anual/Bases/Custos Fixos/2025/CF-txSala_Mensal.xlsx"
-
-        custo_fixo = pegar_dados_mongodb("rentabilidade_anual","custos_fixos_2025")
-        vmb_concat = pegar_dados_mongodb("rentabilidade_anual","venda_mensal_bruta_2025")
-        df_taxas = pegar_dados_mongodb("rentabilidade_anual","impostos_taxas_2025")
+        custo_fixo = carregar_custo_fixo()
+        vmb_concat = carregar_vmb()
+        df_taxas = carregar_taxas()
 
         df_final = criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas)
         
