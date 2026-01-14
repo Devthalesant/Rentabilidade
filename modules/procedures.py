@@ -5,125 +5,203 @@ import glob
 from pathlib import Path
 import streamlit as st
 from Functions.vmb import criando_df_final_Rentabilidade
+from Functions.Procedures_func import *
 from Functions.dictionaries import obter_dicionarios
 from Functions.mongo import *
 import io
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import locale
 
-@st.cache_data(ttl=3600)  # Cache por 1 hora
-def carregar_custo_fixo():
-    return pegar_dados_mongodb("rentabilidade_anual", "custos_fixos_2025")
+def procedimentos():
 
-@st.cache_data(ttl=3600)
-def carregar_vmb():
-    return pegar_dados_mongodb("rentabilidade_anual", "venda_mensal_bruta_2025")
+    st.title("✨Anialise de Procedimentos✨")
+    st.info("""
+    📈 **Análise Descendente: Do Geral ao Específico**
 
-@st.cache_data(ttl=3600)
-def carregar_taxas():
-    return pegar_dados_mongodb("rentabilidade_anual", "impostos_taxas_2025")
+    Explore o comportamento dos Procedimentos através de diferentes perspectivas:
 
+    • **Visão Temporal:** Evolução mensal dos procedimentos  
+    • **Visão por Unidade:** Desempenho individual de cada unidade   
+    • **Métricas Chave:** Quantidades e Margens de Contribuição  
+    • **Visualização Intuitiva:** Dados complexos apresentados de forma clara
 
-def teste_procedures():
-    custo_fixo = carregar_custo_fixo()
-    vmb_concat = carregar_vmb()
-    df_taxas = carregar_taxas()
+    Ideal para identificação de tendências e tomada de decisão estratégica.
+    """)
+    st.markdown("---")
+    #Trazendo dicionário que posso precisar
+    Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024, all_costs_2025,all_costs_2025_black = obter_dicionarios()
 
-    vmb_concat = vmb_concat.loc[~vmb_concat['Procedimento'].isna()]
-    vmb_concat = vmb_concat.loc[vmb_concat['Procedimento'] != "Vale Presente"]
-    vmb_concat['Procedimento'] = vmb_concat['Procedimento'].astype(str)
-    vmb_concat['Status'] = vmb_concat['Status'].astype(str)
-    vmb_concat['Valor % desconto item'] = vmb_concat['Valor % desconto item'].astype(str)
-    vmb_concat = vmb_concat.loc[~vmb_concat['Procedimento'].str.contains("CORTESIA",case=False)]
-    vmb_concat = vmb_concat.loc[vmb_concat['Valor % desconto item'] != '100,00%']
-    vmb_concat = vmb_concat.loc[vmb_concat['Status'] == "Finalizado"]
-
-    st.dataframe(vmb_concat)
-
-    vmb_concat['valor_unitario'] =  vmb_concat['Valor liquido item'] /  vmb_concat['Quantidade']
-
-    vmb_concat = vmb_concat.loc[~vmb_concat['Procedimento'].isna()]
-
-
-
-    unidades = ['LAPA','TATUAPÉ','OSASCO','JARDINS','SÃO BERNARDO','MOOCA','SANTOS',
-                'COPACABANA','LONDRINA','IPIRANGA','TUCURUVI','CAMPINAS','MOEMA','ITAIM'
-                'SOROCABA','SANTO,AMARO','VILA,MASCOTE','GUARULHOS','TIJUCA','ALPHAVILLE']
-    
-    vmb_concat = vmb_concat.loc[vmb_concat['Unidade'].isin(unidades)]
-
-    colunas_vmb = ['ID orçamento','Mês venda','Unidade',
-                   'Grupo procedimento','Procedimento',
-                   'Quantidade', 'Valor tabela item','Valor % desconto item',
-                   'valor desconto item','valor_unitario']
-
-    vmb_concat = vmb_concat[colunas_vmb]
-
-    Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024, all_costs_2025 = obter_dicionarios()
-
-    vmb_concat['Procedimento_padronizado'] = vmb_concat['Procedimento'].map(Sales_dic)
-    vmb_concat_tratar = vmb_concat.loc[vmb_concat['Procedimento_padronizado'].isna()]
-
-    produtos_tratar = vmb_concat_tratar['Procedimento'].unique()
-    st.warning(f"Procedimentos sem custos Salvos: {produtos_tratar}")
-
-    def extrair_todos_custos(dicionario_custos):
-
-        custos_data = []
-        for procedimento, custos in dicionario_custos.items():
-            custos_data.append({
-                'Procedimento_padronizado': procedimento,
-                'CUSTO TOTAL': custos.get("CUSTO TOTAL", 0),
-                'CUSTO PRODUTO': custos.get("CUSTO PRODUTO", 0),
-                'MOD': custos.get("MOD", 0),
-                'CUSTO INSUMOS': custos.get("CUSTO INSUMOS", 0)
-            })
-        
-        return pd.DataFrame(custos_data)
-
-    # Uso:
+    # Chamando funções
+    vmb_concat,df_taxas =  tratando_base_procedimentos()
     df_custos = extrair_todos_custos(all_costs_2025)
-    vmb_concat = vmb_concat.merge(df_custos, on='Procedimento_padronizado', how='left')
+    groupby_geral, ordenar_por_mes = gerar_dados_agrupados_gerais(vmb_concat,df_custos,df_taxas)
 
-    vmb_concat = vmb_concat.merge(df_taxas[['Mês','Custo_Sobre_Venda']],how='left',
-                                  left_on=['Mês venda'],
-                                  right_on=['Mês'])
+    # Mostrar dados
+    st.subheader("📋 Dados de Vendas - Geral")
+    st.dataframe(groupby_geral)
+    st.markdown("---")
 
-    vmb_concat['Tempo_unitário'] = vmb_concat['Procedimento_padronizado'].map(duration_dic)
+    meses_ocorridos = groupby_geral['Mês venda'].unique().tolist()
 
-        # Converte para timedelta e depois para minutos
-    vmb_concat['Tempo_minutos_unitário'] = pd.to_timedelta(vmb_concat['Tempo_unitário']).dt.total_seconds() / 60
+    # GRÁFICO: Dashboard Interativo com Subplots
+    st.subheader(f"Análise Gráfica do Período - {meses_ocorridos[0]} - {meses_ocorridos[-1]}")
+    st.info("""
+    📈 **Evolução Consolidada dos KPI's**
 
-    # Arredonda para inteiro
-    vmb_concat['Tempo_minutos_unitário'] = (pd.to_timedelta(vmb_concat['Tempo_unitário']).dt.total_seconds() / 60).round().astype(int)
+    Estes gráficos trazem uma visão global do desempenho mensal:
 
-    colunas_vmb = ['Mês venda','ID orçamento','Unidade','Grupo procedimento','Procedimento_padronizado',
-                    'Quantidade', 'Valor tabela item','valor_unitario','CUSTO PRODUTO','MOD','CUSTO INSUMOS',
-                    'Custo_Sobre_Venda','Tempo_minutos_unitário']
+    • **Perspectiva Ampliada:** Análise independente de cortes específicos  
+    • **Métricas Principais:** Evolução das margens e quantidades totais  
+    • **Visão Estratégica:** Tendências gerais dos indicadores  
+    """)
 
-    vmb_concat = vmb_concat[colunas_vmb]
+    fig_dashboard = graficos_gerais(groupby_geral)
 
-    vmb_concat = vmb_concat.rename(columns={'Valor tabela item':'Valor_tabela_unit',
-                                            'valor_unitario' : 'Valor_líquido_unit',
-                                            'CUSTO PRODUTO':'Custo_produto_unit',
-                                            'MOD':'Mod_unit',
-                                            'CUSTO INSUMOS':'Custo_insumo_unit'})
-    
-
-    vmb_concat['Custo_direto_unit'] = (vmb_concat['Custo_produto_unit'] + 
-                                      vmb_concat['Mod_unit'] + 
-                                      vmb_concat['Custo_insumo_unit']) + (vmb_concat['Custo_Sobre_Venda'] * vmb_concat['Valor_líquido_unit'])
-    
-    vmb_concat['Margrem_contribuição_unit_R$'] = vmb_concat['Valor_líquido_unit'] - vmb_concat['Custo_direto_unit']
-    vmb_concat['Margrem_contribuição_unit_%'] = vmb_concat['Margrem_contribuição_unit_R$']/vmb_concat['Valor_líquido_unit']
-    
-
-    vmb_concat_gp = vmb_concat.groupby(['Mês venda','Unidade','Procedimento_padronizado']).agg({'Quantidade':'sum',
-                                                                          'Valor_líquido_unit':'mean',
-                                                                          'Margrem_contribuição_unit_R$' : 'mean',
-                                                                          'Margrem_contribuição_unit_%' : 'mean'})
+    st.plotly_chart(fig_dashboard, use_container_width=True)
 
 
-    st.dataframe(vmb_concat_gp)
-    st.dataframe(vmb_concat)
-    
+    # ###  Definindo os Filtros
+    st.subheader(f"Análise Gráfica Filtrada")
+    base_gp_filtrada = vmb_concat.copy()
 
-    return vmb_concat_gp
+    unidades_filter = sorted(base_gp_filtrada["Unidade"].unique().tolist())
+
+    meses_filter = ['TODAS']  + ['Janeiro','Fevereiro','Março','Abril','Maio',
+                            'Junho','Julho','Agosto','Setembro','Outubro',
+                            'Novembro','Dezembro']
+
+    procedimentos_filter = sorted(base_gp_filtrada["Procedimento_padronizado"].unique().tolist())
+
+    grupos_filter = sorted(base_gp_filtrada["Grupo procedimento"].unique().tolist())
+
+    st.markdown("---")
+        # Container para as análises
+    with st.container():
+        st.header("📊 Unidades X Produto Específico")
+
+        col1,col2 = st.columns(2)
+        with col1:
+            unidade_selecao = st.selectbox("Selecione Uma Unidade:",unidades_filter,index=None)
+        with col2:
+            produto_selecao = st.selectbox("Selecione Um Procedimentos:",procedimentos_filter,index=None)
+        
+        if unidade_selecao and produto_selecao:
+                
+                ## Aqui começaremos a função, ela precisa receber somente o base_gp_filtrada
+                # def Unidades_X_Procedimento(base_gp_filtrada):
+                base_gp_filtrada_1 = base_gp_filtrada.loc[(base_gp_filtrada['Unidade'] == unidade_selecao) &
+                                                        (base_gp_filtrada['Procedimento_padronizado'] == produto_selecao)]
+                
+                base_gp_filtrada_1['Faturamento_orçamento'] = base_gp_filtrada_1['Quantidade'] * base_gp_filtrada_1['Valor_líquido_unit']
+                base_gp_filtrada_1['Custo_direto_orçamento'] = base_gp_filtrada_1['Quantidade'] * base_gp_filtrada_1['Custo_direto_unit']
+                base_gp_filtrada_1['Margem_contribuição_orçamento'] = base_gp_filtrada_1['Quantidade'] * base_gp_filtrada_1['Margem_contribuição_unit_R$']
+
+
+                valor_total_vendido = base_gp_filtrada_1['Faturamento_orçamento'].sum()
+                quantidade_total_vendida = base_gp_filtrada_1['Quantidade'].sum()
+                custo_direto_total = base_gp_filtrada_1['Custo_direto_orçamento'].sum()
+                Margem_contribuicao_total = base_gp_filtrada_1['Margem_contribuição_orçamento'].sum()
+                margem_contribuicao_2 = Margem_contribuicao_total/valor_total_vendido * 100
+
+                col1 , col2, col3 = st.columns(3)
+
+                with col1:
+                    st.metric("Valor Total Vendido:", f"R$ {valor_total_vendido:,.2f}")
+                    st.metric("Quantidade Total Vendida", f"{quantidade_total_vendida:,.0f}")
+
+                with col2:
+                    st.metric("Custo Direto Total:", f"R$ {custo_direto_total:,.2f}")
+                    
+
+                with col3:
+                    st.metric("Margem de Contribuição Total", f"R$ {Margem_contribuicao_total:,.2f}")
+                    st.metric("Margem de Contribuição Total (%)", f"{margem_contribuicao_2:,.2f}%")
+
+
+
+                base_gp_final_1 = base_gp_filtrada_1.groupby(['Mês venda']).agg({'Quantidade' : 'sum',
+                                                                                'Valor_líquido_unit' : 'mean',
+                                                                                'Margem_contribuição_unit_R$' : 'mean',
+                                                                                'Margem_contribuição_unit_%' : 'mean'}).reset_index()
+                
+                
+                
+                base_gp_final_1 = ordenar_por_mes(base_gp_final_1, 'Mês venda')
+            
+                ## Gráfico de Quantidade Cruzado com Preço praticado mes a mes
+                fig_combinado = go.Figure()
+
+                # Barras para Quantidade (eixo Y esquerdo)
+                fig_combinado.add_trace(go.Bar(
+                    x=base_gp_final_1["Mês venda"],
+                    y=base_gp_final_1["Quantidade"],
+                    name="Quantidade",
+                    marker_color='blue',
+                    opacity=0.7,
+                    width=0.4,  # Largura da barra
+                    offset=-0.2  # Desloca para esquerda
+                ))
+
+                # Barras para Valor Unitário (eixo Y direito)
+                fig_combinado.add_trace(go.Bar(
+                    x=base_gp_final_1["Mês venda"],
+                    y=base_gp_final_1["Valor_líquido_unit"], 
+                    name="Valor Unitário",
+                    marker_color='green',
+                    opacity=0.7,
+                    yaxis="y2",
+                    width=0.4,  # Largura da barra
+                    offset=0.2   # Desloca para direita
+                ))
+
+                fig_combinado.update_layout(
+                    title="Quantidade e Preço Praticado Mês a Mês",
+                    xaxis_title="Mês venda",
+                    yaxis=dict(
+                        title="Quantidade",
+                        title_font=dict(color="blue"),
+                        tickfont=dict(color="blue")
+                    ),
+                    yaxis2=dict(
+                        title="Valor Unitário (R$)",
+                        title_font=dict(color="green"),
+                        tickfont=dict(color="green"),
+                        overlaying="y",
+                        side="right",
+                        tickformat=".2f",
+                        tickprefix="R$ "
+                    ),
+                    barmode='group'
+                )
+
+                st.plotly_chart(fig_combinado, use_container_width=True)
+
+                ## Gráfico de evolução de Preço praticado
+                fig_margem = go.Figure(data=[
+                    go.Bar(x=base_gp_final_1["Mês venda"], 
+                        y=base_gp_final_1["Margem_contribuição_unit_R$"])
+                ])
+
+                fig_margem.update_layout(
+                    title="Margem de Contribuição Mês a Mês",
+                    xaxis_title="Mês venda",
+                    yaxis_title="Margem de Contribuição"
+                )
+
+                # Formata o eixo Y como moeda brasileira
+                fig_margem.update_yaxes(
+                    tickprefix="R$ ",
+                    tickformat=",.2f",
+                )
+
+                st.plotly_chart(fig_margem, use_container_width=True)
+
+                st.header("Base De Dados")
+                st.dataframe(base_gp_final_1)
+
+
+
+        else:
+            st.warning("Preencha informações nos dois Filtros Solicitados !")

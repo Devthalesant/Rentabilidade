@@ -12,7 +12,7 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
 #"Bases/Venda Mesal Bruta/2024/vmb_2024_concat.csv"
 #"Bases/Custos Fixos/2024/CF-txSala.xlsx"
 
-    Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024 , all_costs_2025 = obter_dicionarios()
+    Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024, all_costs_2025,all_costs_2025_black = obter_dicionarios()
 
     #vmb_concat = pd.read_csv(vmb_concat_path,low_memory=False)
     #custo_fixo = pd.read_excel(custo_fixo_path)
@@ -74,15 +74,21 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
     # Tirando depilação: 
     vmb_concat = vmb_concat.loc[vmb_concat['Procedimento_padronizado'] != "DEPILACAO"]
 
-    # Colunas de custo: 
+    # Colunas de custo: AQUIII
     def get_cost(row, cost_type):
         if row['Ano de venda'] == 2024:
             return all_costs_2024.get(row['Procedimento_padronizado'], {}).get(cost_type, 0)
+        
         elif row['Ano de venda'] == 2025:
+            mes = str(row['Mês venda']).strip().lower()
+            
+            if mes in ['novembro', 'nov', '11', 11]:
+                return all_costs_2025_black.get(row['Procedimento_padronizado'], {}).get(cost_type, 0)
             return all_costs_2025.get(row['Procedimento_padronizado'], {}).get(cost_type, 0)
+        
         else:
             return 0
-
+        
     vmb_concat['Custo Produto'] = vmb_concat.apply(lambda row: get_cost(row, 'CUSTO PRODUTO'), axis=1)
     vmb_concat['Custo Insumos'] = vmb_concat.apply(lambda row: get_cost(row, 'CUSTO INSUMOS'), axis=1)
     vmb_concat['Custo Mod'] = vmb_concat.apply(lambda row: get_cost(row, 'MOD'), axis=1)
