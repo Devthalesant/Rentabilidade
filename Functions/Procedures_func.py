@@ -93,7 +93,7 @@ def extrair_todos_custos(dicionario_custos):
     return pd.DataFrame(custos_data)
 
 ########################################################################################################
-#FUnção de Extrair Custis: 
+#FUnção de Extrair Custis: a 
 
 def gerar_dados_agrupados_gerais(vmb_concat,df_custos,df_taxas):
 
