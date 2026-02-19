@@ -58,6 +58,9 @@ def page_analyse_2026():
         df_database = df_final.copy()
         df = df_final.copy()
         
+        df_database = df_database.loc[df_database['Unidade'].isin(unidades_options)]
+        df = df.loc[df['Unidade'].isin(unidades_options)]
+        
         # Filtro por unidade
         if branch != "TODAS COMPILADAS":
             df = df[df['Unidade'] == branch]

@@ -86,6 +86,13 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
                 return all_costs_2025_black.get(row['Procedimento_padronizado'], {}).get(cost_type, 0)
             return all_costs_2025.get(row['Procedimento_padronizado'], {}).get(cost_type, 0)
         
+        elif row['Ano de venda'] == 2026:
+            mes = str(row['Mês venda']).strip().lower()
+            
+            if mes in ['novembro', 'nov', '11', 11]:
+                return all_costs_2025_black.get(row['Procedimento_padronizado'], {}).get(cost_type, 0)
+            return all_costs_2025.get(row['Procedimento_padronizado'], {}).get(cost_type, 0)
+        
         else:
             return 0
         
