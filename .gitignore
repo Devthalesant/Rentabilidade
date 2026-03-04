@@ -3,3 +3,4 @@ Bases/
 auth/
 .streamlit/secrets.toml
 Functions/fetch_api_crm.py
+*.ipynb
