@@ -3,7 +3,6 @@ from modules.analise_2024 import page_analyse_2024
 from modules.analise_2025 import page_analyse_2025
 from modules.analise_2026 import page_analyse_2026
 from modules.atualizar_dados import atualizar_banco_de_dados
-from modules.procedures import procedimentos
 
 st.set_page_config(
     page_title="Rentabilidade - Pró-Corpo", 
@@ -31,7 +30,6 @@ def main():
             "1 - 2024": page_analyse_2024,
             "2 - 2025": page_analyse_2025,
             "3 - 2026": page_analyse_2026,
-            "3 - 2025 procedures" : procedimentos,
         },
         "Admin": {
             "1 - Atualizar Base de Dados": atualizar_banco_de_dados,

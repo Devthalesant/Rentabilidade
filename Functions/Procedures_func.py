@@ -43,6 +43,8 @@ def tratando_base_procedimentos():
     vmb_concat = vmb_concat.loc[vmb_concat['Valor % desconto item'] != '100,00%']
     vmb_concat = vmb_concat.loc[vmb_concat['Status'] == "Finalizado"]
 
+    vmb_concat["Quantidade"] = pd.to_numeric(vmb_concat["Quantidade"], errors="coerce").astype("Int64")
+
     vmb_concat['valor_unitario'] =  vmb_concat['Valor liquido item'] /  vmb_concat['Quantidade']
 
     vmb_concat = vmb_concat.loc[~vmb_concat['Procedimento'].isna()]
@@ -52,13 +54,13 @@ def tratando_base_procedimentos():
     unidades = ['LAPA','TATUAPÉ','OSASCO','JARDINS','SÃO BERNARDO','MOOCA','SANTOS',
                 'COPACABANA','LONDRINA','IPIRANGA','TUCURUVI','CAMPINAS','MOEMA','ITAIM'
                 'SOROCABA','SANTO,AMARO','VILA,MASCOTE','GUARULHOS','TIJUCA','ALPHAVILLE']
-    
+
     vmb_concat = vmb_concat.loc[vmb_concat['Unidade'].isin(unidades)]
 
     colunas_vmb = ['ID orçamento','Mês venda','Unidade',
-                   'Grupo procedimento','Procedimento',
-                   'Quantidade', 'Valor tabela item','Valor % desconto item',
-                   'valor desconto item','valor_unitario']
+                    'Grupo procedimento','Procedimento',
+                    'Quantidade', 'Valor tabela item','Valor % desconto item',
+                    'valor desconto item','valor_unitario']
 
     vmb_concat = vmb_concat[colunas_vmb]
 

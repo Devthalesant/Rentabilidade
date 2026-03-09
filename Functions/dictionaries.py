@@ -595,7 +595,8 @@ def obter_dicionarios():
         'PEELING COREANO':'00:30:00',
         'RENNOVA DIAMOND INTENSE' : '00:30:00',
         'CLUBE DO BOTOX - MASTER' : '06:00:00',
-        'GEL CREME HIDRATANTE OIL FREE' : '0:00:00',
+        'GEL CREME HIDRATANTE OIL FREE' : '00:00:00',
+        'CLUBE DO BOTOX' : '03:15:00',
         }
 
     all_costs_2024 = {
