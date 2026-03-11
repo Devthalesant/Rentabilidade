@@ -14,10 +14,6 @@ def criando_df_final_Rentabilidade(custo_fixo,vmb_concat,df_taxas):
 
     Appointments_dic, Sales_dic, Month_dic, duration_dic, all_costs_2024, all_costs_2025,all_costs_2025_black = obter_dicionarios()
 
-    #vmb_concat = pd.read_csv(vmb_concat_path,low_memory=False)
-    #custo_fixo = pd.read_excel(custo_fixo_path)
-    #df_taxas = pd.read_excel(custo_fixo_path,sheet_name="IMP + CART")
-
     vmb_concat_columns = ['ID orçamento','ID cliente', 'Status','Data venda','Mês venda',
                         'Unidade','Valor líquido','Procedimento','Quantidade',
                         'Valor tabela item', 'Valor liquido item']
