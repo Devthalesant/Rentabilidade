@@ -405,3 +405,7 @@ duration_dic = {
         'GEL CREME HIDRATANTE OIL FREE' : '00:00:00',
         'CLUBE DO BOTOX' : '03:15:00',
         }
+
+dic_quadrimestre_períodos = {'1°- QUADRIMESTRE' : ['Janeiro','Fevereiro','Março','Abril'],
+                             '2°- QUADRIMESTRE' : ['Maio','Junho','Julho','Agosto'],
+                             '3°- QUADRIMESTRE' : ['Setembro','Outubro','Novembro','Dezembro']}

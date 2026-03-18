@@ -2,6 +2,7 @@ import streamlit as st
 from modules.analise_2024 import page_analyse_2024
 from modules.analise_2025 import page_analyse_2025
 from modules.analise_2026 import page_analyse_2026
+from modules.current_year_analysis import page_current_year
 from modules.atualizar_dados import atualizar_banco_de_dados
 
 st.set_page_config(
@@ -30,6 +31,7 @@ def main():
             "1 - 2024": page_analyse_2024,
             "2 - 2025": page_analyse_2025,
             "3 - 2026": page_analyse_2026,
+            "3 - current Year" : page_current_year,
         },
         "Admin": {
             "1 - Atualizar Base de Dados": atualizar_banco_de_dados,
