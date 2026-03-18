@@ -207,6 +207,67 @@ def adicionar_ou_atualizar_custos(
         upsert=True
     )
 
+
+def subir_custos_financeiros_periodo(
+    df: pd.DataFrame,
+    ano: int,
+    mes: int,
+    nome_mes: str = None
+):
+    
+    database_name = 'rentabilidade_anual'
+    collection_name = 'impostos_taxas'
+    client = MongoClient(uri)
+    col = client[database_name][collection_name]
+
+    mes = int(mes)
+    ano = int(ano)
+    periodo = f"{ano}-{str(mes).zfill(2)}"
+
+    df = df.copy()
+
+    if "Ano" in df.columns:
+        df["Ano"] = pd.to_numeric(df["Ano"], errors="coerce").astype("Int64")
+
+    # aceita tanto Mês_num quanto Mes_num
+    if "Mes_num" in df.columns and "Mês_num" not in df.columns:
+        df = df.rename(columns={"Mes_num": "Mês_num"})
+
+    if "Mês_num" in df.columns:
+        df["Mês_num"] = pd.to_numeric(df["Mês_num"], errors="coerce").astype("Int64")
+        df["Mês_num"] = df["Mês_num"].apply(
+            lambda x: f"{int(x):02d}" if pd.notna(x) else None
+        )
+
+    if "Mês" in df.columns:
+        df["Mês"] = df["Mês"].apply(lambda x: x.strip() if isinstance(x, str) else x)
+
+    colunas_remover = [c for c in ["Ano", "Mês_num"] if c in df.columns]
+    df_data = df.drop(columns=colunas_remover, errors="ignore")
+
+    payload = {
+        "_id": periodo,
+        "Ano": ano,
+        "Mês_num": mes,
+        "Mês": nome_mes if nome_mes else None,
+        "periodo": periodo,
+        "row_count": len(df_data),
+        "updated_at": datetime.utcnow(),
+        "data": df_data.to_dict(orient="records")
+    }
+
+    col.update_one(
+        {"_id": periodo},
+        {
+            "$set": payload,
+            "$setOnInsert": {
+                "created_at": datetime.utcnow()
+            }
+        },
+        upsert=True
+    )
+
+
 ################################################################################################################
 ### FUNÇÕES PARA SUBIR AS BASES DE ATUALIZAÇÕES MENSAIS 
 ### VENDA MENSAL BRUTA, CUSTOS FIXOS, IMPOSTOS, TAXAS E COMISSÃO
@@ -329,63 +390,3 @@ def consultar_dados_mongo(database_name, collection_name, ano=None, mes=None, pe
     client.close()
 
     return df
-
-
-def subir_custos_financeiros_periodo(
-    df: pd.DataFrame,
-    ano: int,
-    mes: int,
-    nome_mes: str = None
-):
-    
-    database_name = 'rentabilidade_anual'
-    collection_name = 'impostos_taxas'
-    client = MongoClient(uri)
-    col = client[database_name][collection_name]
-
-    mes = int(mes)
-    ano = int(ano)
-    periodo = f"{ano}-{str(mes).zfill(2)}"
-
-    df = df.copy()
-
-    if "Ano" in df.columns:
-        df["Ano"] = pd.to_numeric(df["Ano"], errors="coerce").astype("Int64")
-
-    # aceita tanto Mês_num quanto Mes_num
-    if "Mes_num" in df.columns and "Mês_num" not in df.columns:
-        df = df.rename(columns={"Mes_num": "Mês_num"})
-
-    if "Mês_num" in df.columns:
-        df["Mês_num"] = pd.to_numeric(df["Mês_num"], errors="coerce").astype("Int64")
-        df["Mês_num"] = df["Mês_num"].apply(
-            lambda x: f"{int(x):02d}" if pd.notna(x) else None
-        )
-
-    if "Mês" in df.columns:
-        df["Mês"] = df["Mês"].apply(lambda x: x.strip() if isinstance(x, str) else x)
-
-    colunas_remover = [c for c in ["Ano", "Mês_num"] if c in df.columns]
-    df_data = df.drop(columns=colunas_remover, errors="ignore")
-
-    payload = {
-        "_id": periodo,
-        "Ano": ano,
-        "Mês_num": mes,
-        "Mês": nome_mes if nome_mes else None,
-        "periodo": periodo,
-        "row_count": len(df_data),
-        "updated_at": datetime.utcnow(),
-        "data": df_data.to_dict(orient="records")
-    }
-
-    col.update_one(
-        {"_id": periodo},
-        {
-            "$set": payload,
-            "$setOnInsert": {
-                "created_at": datetime.utcnow()
-            }
-        },
-        upsert=True
-    )

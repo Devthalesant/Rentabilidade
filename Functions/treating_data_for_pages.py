@@ -1,6 +1,7 @@
 from .dictionaries_2 import *
 import streamlit as st
 import pandas as pd
+from .mongo import *
 
 
 def gerar_kpis_gerais_current_year(data):
@@ -74,3 +75,46 @@ def gerar_dados_quadrimestrais_atual_e_retroativo(dados_retroativos, data, quadr
     })
 
     return lista_de_kpis_retroativos
+
+## Gerar groupby para análise de procedimentos
+
+def gerar_groupby_para_analise_de_procedimento(data_for_procedures):
+    data_for_procedures_gp = data_for_procedures.groupby(['Procedimento_padronizado']).agg({'Valor_unitário' : 'mean',
+                                                                                            'Quantidade' : 'sum',
+                                                                                            'Valor liquido item' : 'sum',
+                                                                                            'Custo_direto_procedimento' : 'sum',
+                                                                                            'tempo_procedimento' : 'sum',
+                                                                                            'Custo_fixo' : 'sum',
+                                                                                            'Custo_total_procedimento' : 'sum',
+                                                                                            'Lucro_líquido_item' : 'sum',
+                                                                                            'Lucro_líquido_item_%' : 'mean'}).reset_index()
+    
+    data_for_procedures_gp = data_for_procedures_gp.rename(columns={'Valor_unitário' : 'Preço_Praticado',
+                                                                    'Valor liquido item' : 'Receita_Gerada',
+                                                                    'Custo_direto_procedimento' : 'Custo_Direto',
+                                                                    'Custo_fixo' : 'Custo_Fixo',
+                                                                    'tempo_procedimento' : 'Tempo_Vendido',
+                                                                    'Custo_total_procedimento' : 'Custo_Total',
+                                                                    'Lucro_líquido_item' : 'Lucro_Líquido',
+                                                                    'Lucro_líquido_item_%' : 'Lucro_Líquido_%'}).reset_index(drop=True)
+    
+    
+    data_for_procedures_gp['Margem_de_Contribuição'] = data_for_procedures_gp['Custo_Direto'] / data_for_procedures_gp['Receita_Gerada']
+
+    data_for_procedures_gp_columns = ['Procedimento_padronizado','Preço_Praticado','Quantidade','Receita_Gerada',
+                                    'Custo_Direto','Margem_de_Contribuição','Custo_Fixo','Custo_Total',
+                                    'Lucro_Líquido','Lucro_Líquido_%','Tempo_Vendido']
+
+    data_for_procedures_gp = data_for_procedures_gp[data_for_procedures_gp_columns]
+
+    data_for_procedures_gp = data_for_procedures_gp.sort_values(by=['Receita_Gerada'],ascending=False).reset_index(drop=True)
+
+    ## Puxando dados De-Para de Categorias: 
+    De_para_catgorias = carregar_doc_mongo('rentabilidade_anual','De-Para Categorias',"DE_PARA_CATEGORIAS",asdataframe=True)
+    De_para_catgorias.columns = ['Procedimento_padronizado','Categoria']
+
+    data_for_procedures_gp = pd.merge(data_for_procedures_gp,De_para_catgorias,
+                                    how='left',
+                                    on='Procedimento_padronizado')
+    
+    return data_for_procedures_gp
