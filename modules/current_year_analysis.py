@@ -530,3 +530,6 @@ def page_current_year():
         )
 
 ##COmeçar análise de Ociosidade
+    st.header("Tempo, Taxas e Ociosidade:")
+    df_tempo = carregar_tempo_unidade_mes(ano=2026,mes=None,periodos=None,periodo=None)
+    st.dataframe(df_tempo)

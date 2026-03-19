@@ -7,6 +7,7 @@ from Functions.tratar_dados_format import *
 from Functions.ui import *
 from Functions.vmb import *
 from Functions.dictionaries import *
+from Functions.aux_generic_functions import *
 
 # =========================================================
 # HELPERS
@@ -87,9 +88,6 @@ def preparar_bases_upload(vmb, custo_fixo, impostos_taxas_comissao):
 
 # =========================================================
 # CONTEXTO BASE COM CACHE
-# Usando st.cache_data para evitar queries repetidas ao MongoDB
-# a cada interação do usuário na página.
-# O cache é invalidado explicitamente após qualquer salvamento.
 # =========================================================
 
 @st.cache_data(show_spinner="Carregando dados do banco...")
@@ -102,7 +100,6 @@ def obter_contexto_base():
         database_name, collection_name_1, doc_id_1, ["raw_name", "categoria"]
     )
 
-    # Filtra valores corrompidos (não-string) na coluna categoria
     df_depara_name["categoria"] = df_depara_name["categoria"].apply(
         lambda x: x if isinstance(x, str) else None
     )
@@ -140,7 +137,6 @@ def obter_contexto_base():
 
 
 def invalidar_cache_contexto():
-    """Limpa o cache do contexto base para forçar nova leitura do MongoDB."""
     obter_contexto_base.clear()
 
 
@@ -233,8 +229,9 @@ def render_tab_upload_bases(database_name):
 
             status.update(label="✅ Upload concluído com sucesso.", state="complete", expanded=False)
 
-        st.success("As bases foram atualizadas.")
-        st.balloons()
+        st.session_state["aba_atualizar_banco_pendente"] = "📤 Upload de Bases"
+        st.session_state["flash_success"] = "✅ As bases foram atualizadas com sucesso."
+        st.rerun()
 
 
 # =========================================================
@@ -301,7 +298,8 @@ def render_tab_custos_mes(database_name, collection_name_3, doc_id_3):
             mes=mes_atual,
             df_custos=df_editado
         )
-        st.success(f"Custos do mês {mes_atual} salvos com sucesso.")
+        st.session_state["aba_atualizar_banco_pendente"] = "💰 Custos do Mês"
+        st.session_state["flash_success"] = f"✅ Custos do mês {mes_atual} salvos com sucesso."
         st.rerun()
 
 
@@ -309,7 +307,6 @@ def render_tab_custos_mes(database_name, collection_name_3, doc_id_3):
 # ABA 3 - DE-PARA
 # =========================================================
 
-# Inicializa o session_state do formulário de De-Para
 def _init_depara_state():
     defaults = {
         "depara_nome_crm": "",
@@ -321,6 +318,7 @@ def _init_depara_state():
         "depara_custo_mod": 0.0,
         "depara_custo_insumos": 0.0,
         "depara_salvo": False,
+        "df_upload_depara_validado": None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -328,11 +326,6 @@ def _init_depara_state():
 
 
 def _limpar_depara_state():
-    """
-    Não reseta as keys dos widgets diretamente (causa erro no Streamlit).
-    Apenas marca o flag para que o _init saiba que deve reiniciar o form.
-    O st.rerun() que vem logo depois recria os widgets do zero.
-    """
     keys_para_deletar = [
         "depara_nome_crm",
         "depara_opcao_valor",
@@ -347,6 +340,8 @@ def _limpar_depara_state():
     for key in keys_para_deletar:
         if key in st.session_state:
             del st.session_state[key]
+
+    st.session_state["df_upload_depara_validado"] = None
 
 
 def render_tab_depara(
@@ -367,7 +362,6 @@ def render_tab_depara(
 
     mes_atual = get_mes_atual_str()
 
-    # Carrega custos — tenta mês atual, cai para anterior
     df_custos_dict, _ = carregar_custos_mes(database_name, collection_name_3, doc_id_3, mes_atual)
     if df_custos_dict is None:
         df_custos_dict, _ = carregar_custos_mes(
@@ -379,7 +373,7 @@ def render_tab_depara(
         )
     df_custos_dict = garantir_coluna_custo_total(df_custos_dict)
 
-    grupos_validos = ["Estética", "Injetáveis e Invasivos", "Produtos", "UNMAPPED"]
+    grupos_validos = sorted(["Estética", "Injetáveis e Invasivos", "Produtos", "Depilação"])
 
     categorias_existentes = sorted(
         df_depara_name["categoria"]
@@ -536,14 +530,121 @@ def render_tab_depara(
                 doc_id="DE_PARA_CATEGORIAS"
             )
 
-        # Invalida o cache para forçar releitura do MongoDB na próxima renderização
         invalidar_cache_contexto()
-
-        # Reseta o formulário
         _limpar_depara_state()
 
-        st.success("✅ Procedimento salvo com sucesso!")
+        st.session_state["aba_atualizar_banco_pendente"] = "🧩 De-Para de Procedimentos"
+        st.session_state["flash_success"] = "✅ Procedimento salvo com sucesso!"
         st.rerun()
+
+    st.markdown("### 📄 Atualizar de-para via planilha")
+    with st.container(border=True):
+        st.markdown("### Atualização em lote")
+        st.caption(
+            "Baixe o modelo, preencha as linhas com os novos procedimentos e envie a planilha para atualizar o banco."
+        )
+
+        modelo_df = gerar_planilha_modelo_depara()
+        modelo_xlsx = dataframe_para_excel_bytes(modelo_df)
+
+        col_a, col_b = st.columns([1, 2])
+
+        with col_a:
+            st.download_button(
+                label="📥 Baixar modelo",
+                data=modelo_xlsx,
+                file_name="Planilha_exemplo_depara.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="download_modelo_depara"
+            )
+
+        with col_b:
+            st.info(
+                "Colunas obrigatórias: Nome_procedimento_CRM, Procedimento_padronizado, "
+                "Tempo_min, Custo_do_produto, custo_de_aplicacao, custo_dos_insumos e Categoria."
+            )
+
+        with st.form("form_upload_depara_lote", clear_on_submit=False):
+            arquivo_postado = st.file_uploader(
+                "Envie a planilha preenchida",
+                type=["xlsx", "csv"],
+                key="upload_planilha_depara_lote",
+                help="Aceita arquivos .xlsx e .csv"
+            )
+
+            submitted_preview = st.form_submit_button("Validar planilha")
+
+        if submitted_preview:
+            st.session_state["aba_atualizar_banco_pendente"] = "🧩 De-Para de Procedimentos"
+
+            if arquivo_postado is None:
+                st.warning("Favor fazer o upload do arquivo antes de validar.")
+            else:
+                try:
+                    arquivo_para_atualizar_de_para = ler_arquivo_upload_depara(arquivo_postado)
+                    arquivo_para_atualizar_de_para = preparar_preview_upload_depara(
+                        arquivo_para_atualizar_de_para
+                    )
+
+                    colunas_ausentes = validar_colunas_upload_depara(
+                        arquivo_para_atualizar_de_para
+                    )
+
+                    if colunas_ausentes:
+                        st.error("A planilha enviada não contém todas as colunas obrigatórias.")
+                        st.write("Colunas ausentes:", colunas_ausentes)
+                        st.session_state["df_upload_depara_validado"] = None
+                    else:
+                        st.success("Planilha validada com sucesso.")
+                        st.markdown("### Prévia dos dados")
+                        st.dataframe(
+                            arquivo_para_atualizar_de_para,
+                            use_container_width=True,
+                            height=350
+                        )
+
+                        st.session_state["df_upload_depara_validado"] = arquivo_para_atualizar_de_para
+
+                except Exception as e:
+                    st.error(f"Erro ao ler a planilha: {str(e)}")
+                    st.session_state["df_upload_depara_validado"] = None
+
+        df_validado = st.session_state.get("df_upload_depara_validado")
+
+        if df_validado is not None:
+            st.markdown("### Confirmar atualização")
+            st.caption(
+                "Revise a prévia acima. Ao confirmar, os registros serão enviados para atualização do banco."
+            )
+
+            st.dataframe(df_validado, use_container_width=True, height=350)
+
+            if st.button(
+                "✅ Atualizar de-para em lote",
+                type="primary",
+                key="btn_atualizar_depara_lote"
+            ):
+                try:
+                    with st.spinner("Atualizando de-para em lote..."):
+                        resultado = atualizar_banco_de_dados_de_para_com_excel(df_validado)
+
+                    if resultado.get("erros"):
+                        for erro in resultado["erros"]:
+                            st.error(erro)
+
+                    if resultado.get("sucesso", False):
+                        invalidar_cache_contexto()
+                        st.session_state["df_upload_depara_validado"] = None
+                        st.session_state["aba_atualizar_banco_pendente"] = "🧩 De-Para de Procedimentos"
+                        st.session_state["flash_success"] = "✅ De-para atualizado com sucesso via planilha."
+                        st.rerun()
+                    else:
+                        if resultado.get("mensagens"):
+                            for msg in resultado["mensagens"]:
+                                st.warning(msg)
+
+                except Exception as e:
+                    st.error(f"Erro ao atualizar o banco com a planilha: {str(e)}")
 
 
 # =========================================================
@@ -556,20 +657,51 @@ def atualizar_banco_de_dados():
         subtitle="Gerencie uploads mensais, custos do mês e de-para de procedimentos em um único lugar."
     )
 
+    if "aba_atualizar_banco" not in st.session_state:
+        st.session_state["aba_atualizar_banco"] = "🧩 De-Para de Procedimentos"
+
+    if "aba_atualizar_banco_pendente" not in st.session_state:
+        st.session_state["aba_atualizar_banco_pendente"] = None
+
+    if "flash_success" not in st.session_state:
+        st.session_state["flash_success"] = None
+
+    # aplica mudança pendente antes do widget
+    if st.session_state["aba_atualizar_banco_pendente"] is not None:
+        st.session_state["aba_atualizar_banco"] = st.session_state["aba_atualizar_banco_pendente"]
+        st.session_state["aba_atualizar_banco_pendente"] = None
+
+    if st.session_state["flash_success"]:
+        st.success(st.session_state["flash_success"])
+        st.session_state["flash_success"] = None
+
     ctx = obter_contexto_base()
 
-    tab1, tab2, tab3 = st.tabs([
+    opcoes_abas = [
         "📤 Upload de Bases",
         "💰 Custos do Mês",
         "🧩 De-Para de Procedimentos"
-    ])
+    ]
 
-    with tab1:
+    if st.session_state["aba_atualizar_banco"] not in opcoes_abas:
+        st.session_state["aba_atualizar_banco"] = "🧩 De-Para de Procedimentos"
+
+    aba_escolhida = st.segmented_control(
+        "Navegação",
+        options=opcoes_abas,
+        selection_mode="single",
+        key="aba_atualizar_banco"
+    )
+
+    if aba_escolhida is None:
+        aba_escolhida = st.session_state["aba_atualizar_banco"]
+
+    if aba_escolhida == "📤 Upload de Bases":
         abrir_card_ui()
         render_tab_upload_bases(ctx["database_name"])
         fechar_card_ui()
 
-    with tab2:
+    elif aba_escolhida == "💰 Custos do Mês":
         abrir_card_ui()
         render_tab_custos_mes(
             database_name=ctx["database_name"],
@@ -578,7 +710,7 @@ def atualizar_banco_de_dados():
         )
         fechar_card_ui()
 
-    with tab3:
+    elif aba_escolhida == "🧩 De-Para de Procedimentos":
         abrir_card_ui()
         render_tab_depara(
             database_name=ctx["database_name"],

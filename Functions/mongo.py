@@ -3,6 +3,9 @@ from pymongo.server_api import ServerApi
 import pandas as pd
 import streamlit as st
 from datetime import datetime
+import pandas as pd
+import time
+from datetime import timedelta
 
 uri = st.secrets.mongo_credentials.uri
 
@@ -390,3 +393,193 @@ def consultar_dados_mongo(database_name, collection_name, ano=None, mes=None, pe
     client.close()
 
     return df
+
+def carregar_tempo_unidade_mes(
+    ano=None,
+    mes=None,
+    periodos=None,
+    periodo=None,
+    database_name: str = "rentabilidade_anual",
+    collection_name: str = "Tempo_Unidade_Mes"
+) -> pd.DataFrame:
+    client = MongoClient(uri)
+    col = client[database_name][collection_name]
+
+    filtro = {}
+
+    if periodo:
+        filtro["_id"] = periodo
+    elif periodos:
+        filtro["_id"] = {"$in": periodos}
+    else:
+        if ano is not None:
+            filtro["Ano"] = int(ano)
+        if mes is not None:
+            filtro["Mes_num"] = str(mes).zfill(2)
+
+    docs = list(col.find(filtro))
+
+    lista_dfs = []
+
+    for doc in docs:
+        df = pd.DataFrame(doc.get("data", []))
+
+        if not df.empty:
+            df["Ano"] = doc.get("Ano")
+            df["Mes_num"] = doc.get("Mes_num")
+            df["periodo"] = doc.get("periodo")
+            lista_dfs.append(df)
+
+    if lista_dfs:
+        df_final = pd.concat(lista_dfs, ignore_index=True)
+        if {"Ano", "Mes_num", "Unidade"}.issubset(df_final.columns):
+            df_final = df_final.sort_values(["Ano", "Mes_num", "Unidade"]).reset_index(drop=True)
+        return df_final
+
+    return pd.DataFrame()
+
+## Atualizar colection com tabrela em excel: 
+def atualizar_banco_de_dados_de_para_com_excel(base):
+    mensagens = []
+    erros = []
+
+    def get_ano_atual():
+        return datetime.now().year
+
+    try:
+        # =========================
+        # Separando dataframes
+        # =========================
+        de_para_nome = base[["Nome_procedimento_CRM", "Procedimento_padronizado"]].copy()
+        de_para_tempo = base[["Procedimento_padronizado", "Tempo_min"]].copy()
+        de_para_custos = base[
+            ["Procedimento_padronizado", "Custo_do_produto", "custo_de_aplicacao", "custo_dos_insumos"]
+        ].copy()
+        de_para_categoria = base[["Procedimento_padronizado", "Categoria"]].copy()
+
+        # =========================
+        # Atualizando nomenclaturas
+        # =========================
+        raw_names_list = de_para_nome["Nome_procedimento_CRM"].tolist()
+        categoria_list = de_para_nome["Procedimento_padronizado"].tolist()
+
+        for r, c in zip(raw_names_list, categoria_list):
+            r = str(r).strip()
+            c = str(c).strip()
+
+            if not r or not c or r.lower() == "nan" or c.lower() == "nan":
+                continue
+
+            adicionar_ou_atualizar_depara(
+                "rentabilidade_anual",
+                "De-Para Nomenclaturas",
+                r,
+                c
+            )
+
+        mensagens.append("✅ Collection De-Para Nomenclaturas atualizada com sucesso.")
+
+        # =========================
+        # Atualizando tempos
+        # =========================
+        categoria_list = de_para_tempo["Procedimento_padronizado"].tolist()
+        tempos_list = de_para_tempo["Tempo_min"].tolist()
+
+        for c, t in zip(categoria_list, tempos_list):
+            c = str(c).strip()
+
+            if not c or c.lower() == "nan" or pd.isna(t):
+                continue
+
+            t = int(t)
+            tempo_formatado = str(timedelta(minutes=t)).zfill(8)
+
+            adicionar_ou_atualizar_tempo(
+                "rentabilidade_anual",
+                "De-Para Tempo Procedimentos",
+                categoria=c,
+                tempo=tempo_formatado
+            )
+
+        mensagens.append("✅ Collection De-Para Tempo Procedimentos atualizada com sucesso.")
+
+        # =========================
+        # Atualizando custos
+        # =========================
+        categoria_list = de_para_custos["Procedimento_padronizado"].tolist()
+        produto_cost_list = de_para_custos["Custo_do_produto"].tolist()
+        mod_cost_list = de_para_custos["custo_de_aplicacao"].tolist()
+        insumos_cost_list = de_para_custos["custo_dos_insumos"].tolist()
+
+        doc_id = f"ALL_COSTS_{get_ano_atual()}_MENSAL"
+        custos_doc = carregar_doc_mongo(
+            "rentabilidade_anual",
+            "Custos Procedimentos Mensal",
+            doc_id
+        )
+
+        if not custos_doc:
+            raise ValueError(f"Documento de custos '{doc_id}' não encontrado.")
+
+        ultimo_mes_do_doc = max(custos_doc.keys())
+
+        for c, p, m, i in zip(categoria_list, produto_cost_list, mod_cost_list, insumos_cost_list):
+            c = str(c).strip()
+
+            if not c or c.lower() == "nan":
+                continue
+
+            p = float(0 if pd.isna(p) else p)
+            m = float(0 if pd.isna(m) else m)
+            i = float(0 if pd.isna(i) else i)
+
+            adicionar_ou_atualizar_custos(
+                "rentabilidade_anual",
+                "Custos Procedimentos Mensal",
+                doc_id=doc_id,
+                mes=ultimo_mes_do_doc,
+                procedimento=c,
+                produto_cost=p,
+                mod_cost=m,
+                consumiveis_cost=i
+            )
+
+        mensagens.append(f"✅ Collection Custos Procedimentos Mensal atualizada com sucesso no mês {ultimo_mes_do_doc}.")
+
+        # =========================
+        # Atualizando categorias
+        # =========================
+        categoria_list = de_para_categoria["Procedimento_padronizado"].tolist()
+        grupo_list = de_para_categoria["Categoria"].tolist()
+
+        for c, g in zip(categoria_list, grupo_list):
+            c = str(c).strip()
+            g = str(g).strip()
+
+            if not c or not g or c.lower() == "nan" or g.lower() == "nan":
+                continue
+
+            adicionar_ou_atualizar_depara(
+                "rentabilidade_anual",
+                "De-Para Categorias",
+                raw_name=c,
+                categoria=g,
+                doc_id="DE_PARA_CATEGORIAS"
+            )
+
+        mensagens.append("✅ Collection De-Para Categorias atualizada com sucesso.")
+        mensagens.append("✅ Todas as collections foram atualizadas com sucesso.")
+
+        return {
+            "sucesso": True,
+            "mensagens": mensagens,
+            "erros": erros
+        }
+
+    except Exception as e:
+        erros.append(str(e))
+        return {
+            "sucesso": False,
+            "mensagens": mensagens,
+            "erros": erros
+        }
