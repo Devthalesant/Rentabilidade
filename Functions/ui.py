@@ -72,9 +72,29 @@ _CSS_DARK_BASE = dedent("""
 .block-container {
     padding-top: 2.5rem !important;
     padding-bottom: 4rem !important;
-    padding-left: 4rem !important;
-    padding-right: 4rem !important;
+    padding-left: 3rem !important;
+    padding-right: 3rem !important;
     max-width: 1280px !important;
+}
+
+/* ===== Botão collapse do sidebar (esconde o texto "keyboard_double_→") ===== */
+button[data-testid="baseButton-headerNoPadding"] {
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+}
+button[data-testid="baseButton-headerNoPadding"] svg {
+    display: inline-block !important;
+    color: var(--dk-text-soft) !important;
+    width: 18px !important;
+    height: 18px !important;
+}
+
+/* ===== Expander — evita corte lateral ===== */
+details > summary {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 /* ===== Tipografia global ===== */
