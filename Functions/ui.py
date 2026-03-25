@@ -164,7 +164,7 @@ h1, h2, h3 {
 /* ===== KPI Cards premium ===== */
 .pc-kpi-card {
     background: var(--dk-surface);
-    border: 1px solid var(--dk-border);
+    border: none;
     border-radius: var(--dk-radius-md);
     padding: 16px 18px 14px;
     position: relative;
@@ -200,7 +200,7 @@ h1, h2, h3 {
     font-weight: 700 !important;
     letter-spacing: 0.07em !important;
     text-transform: uppercase !important;
-    color: var(--dk-text-soft) !important;
+    color: var(--dk-text-mid) !important;
 }
 
 .pc-kpi-icon {
@@ -242,7 +242,7 @@ h1, h2, h3 {
 /* ===== KPI card secundário ===== */
 .pc-kpi-sm {
     background: var(--dk-surface-2);
-    border: 1px solid var(--dk-border-soft);
+    border: none;
     border-radius: var(--dk-radius-sm);
     padding: 12px 16px;
     display: flex;
@@ -255,7 +255,7 @@ h1, h2, h3 {
     font-weight: 700 !important;
     letter-spacing: 0.07em !important;
     text-transform: uppercase !important;
-    color: var(--dk-text-soft) !important;
+    color: var(--dk-text-mid) !important;
 }
 
 .pc-kpi-sm-value {
@@ -831,6 +831,11 @@ def render_kpi_financeiro(
     cor   = _COLOR_MAP.get(tipo, "purple")
     icone = _ICONS.get(tipo, _ICONS["faturamento"])
 
+    # Detecta valor negativo pela presença de "-" na string formatada
+    # Ex: "R$ -202,4 mil", "-15%", "- 5.000"
+    _valor_negativo = "-" in valor
+    valor_style = ' style="color:#f87171 !important;"' if _valor_negativo else ""
+
     delta_html = (
         f'<span class="pc-kpi-delta {delta_tipo}">{delta}</span>'
         if delta else ""
@@ -842,7 +847,7 @@ def render_kpi_financeiro(
             <span class="pc-kpi-label">{label}</span>
             <div class="pc-kpi-icon {cor}">{icone}</div>
         </div>
-        <div class="pc-kpi-value">{valor}</div>
+        <div class="pc-kpi-value"{valor_style}>{valor}</div>
         {delta_html}
     </div>
     """, unsafe_allow_html=True)
