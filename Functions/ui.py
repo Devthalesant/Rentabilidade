@@ -220,7 +220,7 @@ h1, h2, h3 {
     font-family: "DM Serif Display", Georgia, serif !important;
     font-size: 1.5rem !important;
     font-weight: 400 !important;
-    color: var(--dk-text) !important;
+    color: var(--dk-text);
     line-height: 1.1 !important;
 }
 
@@ -834,7 +834,10 @@ def render_kpi_financeiro(
     # Detecta valor negativo pela presença de "-" na string formatada
     # Ex: "R$ -202,4 mil", "-15%", "- 5.000"
     _valor_negativo = "-" in valor
-    valor_style = ' style="color:#f87171 !important;"' if _valor_negativo else ""
+    if _valor_negativo:
+        valor_html = f'<span style="color:#f87171;font-family:inherit;font-size:inherit;font-weight:inherit;">{valor}</span>'
+    else:
+        valor_html = valor
 
     delta_html = (
         f'<span class="pc-kpi-delta {delta_tipo}">{delta}</span>'
@@ -847,7 +850,7 @@ def render_kpi_financeiro(
             <span class="pc-kpi-label">{label}</span>
             <div class="pc-kpi-icon {cor}">{icone}</div>
         </div>
-        <div class="pc-kpi-value"{valor_style}>{valor}</div>
+        <div class="pc-kpi-value">{valor_html}</div>
         {delta_html}
     </div>
     """, unsafe_allow_html=True)
