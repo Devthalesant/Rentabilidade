@@ -4,7 +4,7 @@ from modules.analise_2025 import page_analyse_2025
 from modules.analise_2026 import page_analyse_2026
 from modules.current_year_analysis import page_current_year
 from modules.atualizar_dados import atualizar_banco_de_dados
-from Functions.ui import *
+from Functions.ui import css_sidebar, render_login_screen
 
 st.set_page_config(
     page_title="Rentabilidade - Pró-Corpo",
