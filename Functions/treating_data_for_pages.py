@@ -2,6 +2,7 @@ from .dictionaries_2 import *
 import streamlit as st
 import pandas as pd
 from .mongo import *
+from .tratar_dados_format import *
 
 
 def gerar_kpis_gerais_current_year(data):
@@ -124,3 +125,12 @@ def pegar_taxa_sala_ocs_periodo_unidade_atual(data):
     df_gp_sala_ocs = data.groupby(['Unidade','periodo']).agg({'Taxa Sala (Min)' : 'first',
                                                             'Taxa Ociosidade (Min)' : 'first'}).reset_index()
     return df_gp_sala_ocs
+
+def gerar_kpis_tempo_rede(df_tempo):
+
+    minutos_disponiveis = df_tempo['Minutos Disponivel'].sum()
+    minutos_pagos       = df_tempo['Tempo Vendido'].sum()
+    minutos_ociosos     = df_tempo['Tempo ocioso'].sum()
+    custo_da_ociosidade = formatar_real_resumido(df_tempo['Custo da Ociosidade'].sum())
+
+    return minutos_disponiveis, minutos_pagos, minutos_ociosos, custo_da_ociosidade
