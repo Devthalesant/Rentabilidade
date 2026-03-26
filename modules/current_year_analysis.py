@@ -69,7 +69,12 @@ def page_current_year():
         )
 
     dados_retroativos = dados_retroativos_cache(tuple(lista_de_periodos_busca))
-
+    # ── df_informativo de Taxa Sala e Ociosidade ──────────────────────────────
+    @st.cache_data(ttl=3600)
+    def kpis_taxa_sala_ocioisdade_gp_cache(_ano):
+        _data = dados_completos_cache(_ano)
+        return pegar_taxa_sala_ocs_periodo_unidade_atual(_data)
+    
     # ── KPIs gerais ───────────────────────────────────────────────────────────
     @st.cache_data(ttl=3600)
     def kpis_gerais_cache(_ano):
@@ -81,6 +86,16 @@ def page_current_year():
     faturamento_total_fmt = formatar_real_resumido(faturamento_total)
     custo_total_fmt       = formatar_real_resumido(custo_total)
     resultado_periodo_fmt = formatar_real_resumido(resultado_periodo)
+
+    teste_tijuca = data.loc[data['Unidade'] == 'CAMPINAS']
+    teste_tijuca = teste_tijuca.loc[teste_tijuca['Mês'] == 'Fevereiro']
+
+    cf_sum = teste_tijuca['Custo_fixo'].sum()
+    tempo_vendido = teste_tijuca['tempo_procedimento'].sum()
+
+    st.dataframe(teste_tijuca)
+    st.write(cf_sum)
+    st.write(tempo_vendido)
 
     # ── SEÇÃO: KPIs financeiros ───────────────────────────────────────────────
     render_section_label("Indicadores Financeiros")
@@ -252,8 +267,6 @@ def page_current_year():
         with col2:
             unidade_specific = st.selectbox("Unidade (Procedimento):", unidades)
 
-        # FIX: st.stop() removido — bloco condicional garante que a página
-        # continua renderizando normalmente quando nada está selecionado
         if not procedimento_selecionado:
             st.info("Selecione pelo menos um procedimento para visualizar a evolução mensal.")
         else:
@@ -401,26 +414,78 @@ def page_current_year():
 
     df_ociosidade = df_tempo.copy()
     df_ociosidade['Ociosidade'] = df_ociosidade['Tempo ocioso'] / df_ociosidade['Minutos Disponivel']
+    df_ociosidade['Produtivo'] = 1 - df_ociosidade['Ociosidade']
+
     df_ociosidade_gp = (
         df_ociosidade.groupby('Mes_num')
-        .agg({'Ociosidade': 'mean'})
+        .agg({'Ociosidade': 'mean', 'Produtivo': 'mean'})
         .reset_index()
     )
     df_ociosidade_gp['Mes_str'] = df_ociosidade_gp['Mes_num'].map(Month_dic_number_str)
 
     fig = go.Figure()
+
+    # Barra de tempo produtivo (base)
+    fig.add_trace(go.Bar(
+        x=df_ociosidade_gp["Mes_str"],
+        y=df_ociosidade_gp["Produtivo"],
+        name="Tempo Produtivo",
+        marker_color="#0A84FF",
+        text=[f"{v:.0%}" for v in df_ociosidade_gp["Produtivo"]],
+        textposition="inside",
+        textfont=dict(color="white", size=13, family="Arial Black"),
+        insidetextanchor="middle",
+    ))
+
+    # Barra de ociosidade (topo)
     fig.add_trace(go.Bar(
         x=df_ociosidade_gp["Mes_str"],
         y=df_ociosidade_gp["Ociosidade"],
-        text=[f"{v:.0%}" for v in df_ociosidade_gp["Ociosidade"]],
-        textposition="outside",
         name="Ociosidade",
+        marker_color="#FF2D55",
+        text=[f"{v:.0%}" for v in df_ociosidade_gp["Ociosidade"]],
+        textposition="inside",
+        textfont=dict(color="white", size=13, family="Arial Black"),
+        insidetextanchor="middle",
     ))
-    fig.add_hline(y=0.50, line_dash="dash", annotation_text="Meta: 50%", annotation_position="top left")
+
     fig.update_layout(
+        barmode="stack",
         xaxis_title="Mês",
         yaxis_title="Percentual",
         yaxis_tickformat=".0%",
         yaxis=dict(range=[0, 1]),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
     )
+
     st.plotly_chart(fig, use_container_width=True)
+
+    data_taxa_sala_ocs = kpis_taxa_sala_ocioisdade_gp_cache(ano_atual)
+    st.dataframe(data_taxa_sala_ocs)
+
+    with st.expander("Clique aqui para uma análise por unidade"):
+        unidades_ocs = unidades.remove("TODAS")
+        unidade_selecionada = st.selectbox("Selecione a Unidade Desejada:", unidades,index=None)
+
+        if unidade_selecionada:
+            ## Def filtrar_df_e_pegar_kpis(data_taxa_sala_ocs):
+            data_taxa_sala_ocs_unidade = data_taxa_sala_ocs.loc[data_taxa_sala_ocs['Unidade'] == unidade_selecionada]
+            tx_sala_mean = data_taxa_sala_ocs_unidade['Taxa Sala (Min)'].mean()
+            tx_ocs_mean = data_taxa_sala_ocs_unidade['Taxa Ociosidade (Min)'].mean()
+            custo_fixo_min_mean = tx_sala_mean + tx_ocs_mean
+
+
+            st.dataframe(data_taxa_sala_ocs_unidade)
+            st.write(tx_sala_mean)
+            st.write(tx_ocs_mean)
+            st.write(custo_fixo_min_mean)
+
+            ocs = tx_ocs_mean / custo_fixo_min_mean
+
+            st.write(ocs)
+
+
+        else:
+            st.warning("Selecione uma unidade para continuar")

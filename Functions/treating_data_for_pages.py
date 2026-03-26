@@ -118,3 +118,9 @@ def gerar_groupby_para_analise_de_procedimento(data_for_procedures):
                                     on='Procedimento_padronizado')
     
     return data_for_procedures_gp
+
+## Função para pegar dados atuais de taxa sala e ocisoidade
+def pegar_taxa_sala_ocs_periodo_unidade_atual(data):
+    df_gp_sala_ocs = data.groupby(['Unidade','periodo']).agg({'Taxa Sala (Min)' : 'first',
+                                                            'Taxa Ociosidade (Min)' : 'first'}).reset_index()
+    return df_gp_sala_ocs

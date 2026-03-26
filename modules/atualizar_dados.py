@@ -220,6 +220,7 @@ def render_tab_upload_bases(database_name):
                                 status.write(msg)
 
                         subir_dados_tratados(base_tratada)
+                        subir_tempo_unidade_mes_periodo(df_tempo_unidade_mes)
                         status.write(f"✅ {nome_da_base} tratada e atualizada com sucesso.")
 
                 except Exception as e:

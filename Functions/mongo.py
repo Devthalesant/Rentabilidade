@@ -341,6 +341,78 @@ def subir_custos_fixos_periodo(
     )
     print("Dados de Custo Fixo Adicionados ao banco de Dados!")
 
+def subir_tempo_unidade_mes_periodo(
+    df: pd.DataFrame,
+    database_name: str = "rentabilidade_anual",
+    collection_name: str = "Tempo_Unidade_Mes"
+):
+    client = MongoClient(uri)
+    col = client[database_name][collection_name]
+
+    df = df.copy()
+
+    # -----------------------------
+    # Normalização
+    # -----------------------------
+    df.columns = [str(c).strip() for c in df.columns]
+    df.columns = [" ".join(c.split()) for c in df.columns]
+
+    for c in df.columns:
+        if df[c].dtype == "object":
+            df[c] = df[c].apply(lambda x: x.strip() if isinstance(x, str) else x)
+
+    # garante colunas mínimas
+    colunas_necessarias = [
+        "Ano", "Mes_num", "Unidade",
+        "Minutos Disponivel", "Tempo Vendido",
+        "Tempo ocioso", "Custo da Ociosidade", "periodo"
+    ]
+    faltantes = [c for c in colunas_necessarias if c not in df.columns]
+    if faltantes:
+        raise ValueError(f"Colunas obrigatórias ausentes: {faltantes}")
+
+    df["Ano"] = pd.to_numeric(df["Ano"], errors="coerce").astype("Int64")
+    df["Mes_num"] = df["Mes_num"].astype(str).str.strip().str.zfill(2)
+
+    for c in ["Minutos Disponivel", "Tempo Vendido", "Tempo ocioso", "Custo da Ociosidade"]:
+        df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    df["periodo"] = df["Ano"].astype(str) + "-" + df["Mes_num"]
+
+    # remove duplicatas por unidade no período
+    df = df.drop_duplicates(subset=["periodo", "Unidade"]).reset_index(drop=True)
+
+    # -----------------------------
+    # Descobre metadata do doc
+    # -----------------------------
+    periodo = df["periodo"].dropna().iloc[0]
+    ano = int(df["Ano"].dropna().iloc[0])
+    mes = df["Mes_num"].dropna().iloc[0]
+
+    # remove metadata duplicada do data
+    df_data = df.drop(columns=["Ano", "Mes_num", "periodo"], errors="ignore")
+
+    payload = {
+        "_id": periodo,
+        "Ano": ano,
+        "Mes_num": mes,
+        "periodo": periodo,
+        "row_count": len(df_data),
+        "updated_at": datetime.utcnow(),
+        "data": df_data.to_dict(orient="records")
+    }
+
+    col.update_one(
+        {"_id": periodo},
+        {
+            "$set": payload,
+            "$setOnInsert": {"created_at": datetime.utcnow()}
+        },
+        upsert=True
+    )
+
+    return f"Base de tempo do período {periodo} subida com sucesso."
+
 ####################
 # Ess é para puxar os dados trataods
 ####################
