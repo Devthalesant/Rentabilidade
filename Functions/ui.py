@@ -82,19 +82,35 @@ button[data-testid="baseButton-headerNoPadding"] {
     color: transparent !important;
     font-size: 0 !important;
     line-height: 0 !important;
+    overflow: hidden !important;
+}
+button[data-testid="baseButton-headerNoPadding"] > * {
+    font-size: 0 !important;
+    color: transparent !important;
 }
 button[data-testid="baseButton-headerNoPadding"] svg {
     display: inline-block !important;
     color: var(--dk-text-soft) !important;
     width: 18px !important;
     height: 18px !important;
+    flex-shrink: 0 !important;
 }
 
 /* ===== Expander — evita corte lateral ===== */
 details > summary {
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    overflow: visible !important;
     white-space: nowrap !important;
+}
+/* garante que o ícone de chevron do expander não seja cortado */
+details > summary > * {
+    overflow: visible !important;
+}
+details summary svg,
+details summary [data-testid="stExpanderToggleIcon"] {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
 }
 
 /* ===== Tipografia global ===== */
@@ -414,16 +430,58 @@ div[data-baseweb="notification"] {
 /* ===== Expanders ===== */
 details {
     background: var(--dk-surface-2) !important;
-    border: 1px solid var(--dk-border) !important;
+    border: 1px solid var(--dk-border-strong) !important;
     border-radius: var(--dk-radius-md) !important;
     padding: 4px 14px !important;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+details:hover {
+    border-color: var(--dk-purple) !important;
+    box-shadow: 0 0 0 3px rgba(138, 99, 210, 0.10) !important;
+}
+
+details[open] {
+    border-color: var(--dk-purple) !important;
+    box-shadow: 0 0 0 3px rgba(138, 99, 210, 0.10) !important;
 }
 
 details summary {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--dk-text-mid);
-    padding: 10px 0;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    color: var(--dk-text) !important;
+    padding: 12px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    transition: color 0.15s ease !important;
+    letter-spacing: 0.01em !important;
+}
+
+details summary:hover {
+    color: var(--dk-purple-light) !important;
+}
+
+/* remove texto fantasma "parc" que aparece antes do label do expander */
+details summary::before {
+    content: none !important;
+    display: none !important;
+}
+details summary p {
+    margin: 0 !important;
+    overflow: visible !important;
+    white-space: nowrap !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    color: inherit !important;
+}
+/* ícone chevron mais visível */
+details summary svg {
+    color: var(--dk-purple-vivid) !important;
+    opacity: 1 !important;
+    width: 16px !important;
+    height: 16px !important;
 }
 
 /* ===== Divider ===== */
@@ -1131,3 +1189,46 @@ def render_login_screen(erro: bool = False):
             '🔐 Senha incorreta.</span></div>',
             unsafe_allow_html=True,
         )
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  SEÇÃO DE DOWNLOADS — adicionar ao final de ui.py
+#  (antes das funções abrir_card_ui / fechar_card_ui, ou após — qualquer ordem)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def render_download_section():
+    """
+    Injeta o CSS que pinta APENAS os botões dentro de .download-section de verde neon,
+    sem alterar os demais botões da página.
+    Deve ser chamada UMA VEZ, antes de renderizar os st.download_button da seção.
+    """
+    st.markdown("""
+    <style>
+    /* ── Botões de download — verde neon ── */
+    .download-section .stDownloadButton > button {
+        background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%) !important;
+        border: 1px solid #00ff88 !important;
+        color: #0a0a0a !important;
+        font-weight: 700 !important;
+        box-shadow: 0 0 14px rgba(0, 255, 136, 0.35), 0 2px 8px rgba(0,0,0,0.4) !important;
+        transition: all 0.18s ease !important;
+    }
+    .download-section .stDownloadButton > button:hover {
+        background: linear-gradient(135deg, #33ffaa 0%, #00e87a 100%) !important;
+        box-shadow: 0 0 24px rgba(0, 255, 136, 0.55), 0 4px 16px rgba(0,0,0,0.5) !important;
+        transform: translateY(-2px) !important;
+        border-color: #33ffaa !important;
+    }
+    .download-section .stDownloadButton > button:active {
+        transform: translateY(0px) !important;
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.30) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # abre o wrapper que o CSS acima usa como escopo
+    st.markdown('<div class="download-section">', unsafe_allow_html=True)
+
+
+def fechar_download_section():
+    """Fecha o wrapper aberto por render_download_section."""
+    st.markdown('</div>', unsafe_allow_html=True)

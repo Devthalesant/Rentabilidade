@@ -23,7 +23,61 @@ from Functions.ui import (
     render_section_label,
     abrir_card_ui,
     fechar_card_ui,
+    render_download_section,
+    fechar_download_section,
 )
+
+
+# ── Helpers de exportação ─────────────────────────────────────────────────────
+def _to_excel_bytes(df: pd.DataFrame) -> bytes:
+    """DataFrame → bytes xlsx (aba única)."""
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Dados")
+    return buf.getvalue()
+
+
+def _to_excel_bytes_multisheet(sheets: dict) -> bytes:
+    """Dict {nome_aba: DataFrame} → bytes xlsx com múltiplas abas."""
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        for sheet_name, df in sheets.items():
+            df.to_excel(writer, index=False, sheet_name=str(sheet_name)[:31])
+    return buf.getvalue()
+
+
+# ── Cache das exportações (evita reprocessamento a cada re-render) ────────────
+@st.cache_data(ttl=3600)
+def _gerar_excel_base_geral(_df):
+    return _to_excel_bytes(_df)
+
+
+@st.cache_data(ttl=3600)
+def _gerar_excel_retroativos(_df):
+    return _to_excel_bytes(_df)
+
+
+@st.cache_data(ttl=3600)
+def _gerar_excel_rankings(_df_rent, _df_custo):
+    return _to_excel_bytes(_df_rent), _to_excel_bytes(_df_custo)
+
+
+@st.cache_data(ttl=3600)
+def _gerar_excel_categorias(_df_gp):
+    sheets = {
+        cat: _df_gp.loc[_df_gp["Categoria"] == cat]
+                   .sort_values("Lucro_Líquido", ascending=False).copy()
+        for cat in sorted(_df_gp["Categoria"].dropna().unique().tolist())
+    }
+    return _to_excel_bytes_multisheet(sheets)
+
+
+@st.cache_data(ttl=3600)
+def _gerar_excel_tempo(_df_tempo, _df_taxa):
+    return _to_excel_bytes_multisheet({
+        "Tempo Unidade-Mes": _df_tempo,
+        "Taxa Sala e Ocs":   _df_taxa,
+    })
 
 
 def page_current_year():
@@ -475,3 +529,126 @@ def page_current_year():
 
         else:
             st.warning("Selecione uma unidade para continuar")
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # ── SEÇÃO: Download de Bases ──────────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════════
+    st.divider()
+    st.subheader("📥 Download de Bases")
+    st.caption("Exporte os dados utilizados nesta página para análise externa no Excel.")
+    with st.expander("Clique Aqui para Fazer os Donwloads..."):
+
+        render_download_section()  # injeta CSS verde neon + abre wrapper
+
+        # rankings sem formatação visual (valores numéricos limpos para o Excel)
+        ranking_rent_dl = (
+            data_for_ranking
+            .groupby('Unidade').agg({'Lucro_líquido_item': 'sum'}).reset_index()
+            .sort_values('Lucro_líquido_item', ascending=False)
+            .rename(columns={'Lucro_líquido_item': 'Resultado'})
+            .reset_index(drop=True)
+        )
+        ranking_custo_dl = (
+            data_for_ranking
+            .groupby('Unidade').agg({'Custo_total_procedimento': 'sum'}).reset_index()
+            .sort_values('Custo_total_procedimento', ascending=True)
+            .rename(columns={'Custo_total_procedimento': 'Custo_Total'})
+            .reset_index(drop=True)
+        )
+
+        excel_rent, excel_custo = _gerar_excel_rankings(ranking_rent_dl, ranking_custo_dl)
+
+        # ── Linha 1: Base Geral + Retroativos ─────────────────────────────────────
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**🗄️ Base Geral — Ano Corrente**")
+            st.caption(
+                "Todos os registros do ano vigente consultados do MongoDB, "
+                "sem nenhum filtro ou transformação. Use para análises customizadas ou validações."
+            )
+            st.download_button(
+                label=f"⬇ Baixar Base Geral {ano_atual}",
+                data=_gerar_excel_base_geral(data),
+                file_name=f"base_geral_{ano_atual}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                key="dl_base_geral",
+            )
+        with col2:
+            st.markdown("**🕰️ Dados Retroativos**")
+            st.caption(
+                "Registros dos anos anteriores usados na comparação da Evolução Mensal. "
+                f"Mesmos campos da base geral, cobrindo os períodos comparativos com {ano_atual}."
+            )
+            st.download_button(
+                label="⬇ Baixar Dados Retroativos",
+                data=_gerar_excel_retroativos(dados_retroativos),
+                file_name="dados_retroativos_comparativo.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                key="dl_retroativos",
+            )
+
+        # ── Linha 2: Rankings ─────────────────────────────────────────────────────
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**🏆 Ranking de Rentabilidade**")
+            st.caption(
+                "Resultado líquido por unidade no período selecionado no filtro de mês. "
+                "Reflete exatamente o ranking exibido na página, com valores numéricos."
+            )
+            st.download_button(
+                label="⬇ Baixar Ranking de Rentabilidade",
+                data=excel_rent,
+                file_name=f"ranking_rentabilidade_{selecionar_mes_ranking}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                key="dl_ranking_rent",
+            )
+        with col2:
+            st.markdown("**💸 Ranking de Custos**")
+            st.caption(
+                "Custo total de procedimentos por unidade no período selecionado. "
+                "Reflete exatamente o ranking exibido na página, com valores numéricos."
+            )
+            st.download_button(
+                label="⬇ Baixar Ranking de Custos",
+                data=excel_custo,
+                file_name=f"ranking_custos_{selecionar_mes_ranking}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                key="dl_ranking_custo",
+            )
+
+        # ── Linha 3: Procedimentos por Categoria + Tempo e Taxas ─────────────────
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**💉 Procedimentos por Categoria**")
+            st.caption(
+                "Uma aba por categoria (filtros de mês e unidade aplicados). "
+                "Cada aba traz receita, custo, margem e lucro por procedimento."
+            )
+            st.download_button(
+                label="⬇ Baixar Procedimentos por Categoria",
+                data=_gerar_excel_categorias(data_for_procedures_gp),
+                file_name="procedimentos_por_categoria.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                key="dl_categorias",
+            )
+        with col2:
+            st.markdown("**⏳ Tempo, Taxas e Ociosidade**")
+            st.caption(
+                "Duas abas: **Tempo por Unidade/Mês** (minutos disponíveis, pagos e ociosos) "
+                "e **Taxa Sala e Ociosidade** (custo por minuto por unidade e período)."
+            )
+            st.download_button(
+                label="⬇ Baixar Tempo e Taxas",
+                data=_gerar_excel_tempo(df_tempo, data_taxa_sala_ocs),
+                file_name=f"tempo_taxas_ociosidade_{ano_atual}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                key="dl_tempo_taxas",
+            )
+
+        fechar_download_section()  # fecha o wrapper do CSS verde neon
