@@ -134,3 +134,97 @@ def gerar_kpis_tempo_rede(df_tempo):
     custo_da_ociosidade = formatar_real_resumido(df_tempo['Custo da Ociosidade'].sum())
 
     return minutos_disponiveis, minutos_pagos, minutos_ociosos, custo_da_ociosidade
+
+# ── Funções: Tratar Dados — Tempo, Taxas e Ociosidade ────────────────────────
+# Origem: current_year_analysis.py → SEÇÃO: Tempo, Taxas e Ociosidade
+# Colar em: Functions/tratar_dados_format.py (ou arquivo de tratar_dados equivalente)
+
+
+def tratar_ociosidade_mensal(df_tempo: pd.DataFrame, Month_dic_number_str: dict) -> pd.DataFrame:
+    """
+    Calcula percentuais de ociosidade e produtividade por mês (nível rede).
+
+    Parâmetros:
+        df_tempo             : DataFrame retornado por carregar_tempo_unidade_mes()
+        Month_dic_number_str : Dicionário {numero_mes: nome_mes_str}
+
+    Retorna:
+        DataFrame com colunas: Mes_num | Ociosidade | Produtivo | Mes_str
+    """
+    df = df_tempo.copy()
+    df['Ociosidade'] = df['Tempo ocioso'] / df['Minutos Disponivel']
+    df['Produtivo']  = 1 - df['Ociosidade']
+
+    df_gp = (
+        df.groupby('Mes_num')
+        .agg({'Ociosidade': 'mean', 'Produtivo': 'mean'})
+        .reset_index()
+    )
+    df_gp['Mes_str'] = df_gp['Mes_num'].map(Month_dic_number_str)
+    return df_gp
+
+
+def tratar_ociosidade_por_unidade(df_taxa_sala_ocs: pd.DataFrame, unidade: str) -> dict:
+    """
+    Filtra e calcula KPIs de ociosidade para uma unidade específica.
+
+    Parâmetros:
+        df_taxa_sala_ocs : DataFrame retornado por pegar_taxa_sala_ocs_periodo_unidade_atual()
+        unidade          : Nome da unidade selecionada
+
+    Retorna:
+        Dicionário com chaves:
+            df_u            : DataFrame filtrado da unidade
+            df_sorted       : DataFrame ordenado por período
+            df_graf         : DataFrame com pct_ocs, pct_prod, mes_label e custo_total_min
+            tx_sala_mean    : float — média da Taxa Sala (Min)
+            tx_ocs_mean     : float — média da Taxa Ociosidade (Min)
+            custo_fixo_min  : float — soma das médias
+            pct_ociosidade  : float — % ociosidade média
+            pct_produtivo   : float — % tempo produtivo médio
+            delta_pct_str   : str | None — variação vs mês anterior formatada
+            delta_tipo_ocs  : str — "down" | "up" | "off"
+    """
+    df_u = df_taxa_sala_ocs[df_taxa_sala_ocs['Unidade'] == unidade].copy()
+
+    tx_sala_mean   = df_u['Taxa Sala (Min)'].mean()
+    tx_ocs_mean    = df_u['Taxa Ociosidade (Min)'].mean()
+    custo_fixo_min = tx_sala_mean + tx_ocs_mean
+    pct_ociosidade = tx_ocs_mean / custo_fixo_min if custo_fixo_min > 0 else 0
+    pct_produtivo  = 1 - pct_ociosidade
+
+    df_sorted = df_u.sort_values('periodo')
+
+    # Delta: variação percentual da ociosidade no último mês vs penúltimo
+    if len(df_sorted) >= 2:
+        ocs_ult   = df_sorted.iloc[-1]['Taxa Ociosidade (Min)']
+        ocs_pen   = df_sorted.iloc[-2]['Taxa Ociosidade (Min)']
+        custo_ult = df_sorted.iloc[-1]['Taxa Sala (Min)'] + ocs_ult
+        custo_pen = df_sorted.iloc[-2]['Taxa Sala (Min)'] + ocs_pen
+        pct_ocs_ult    = ocs_ult / custo_ult if custo_ult > 0 else 0
+        pct_ocs_pen    = ocs_pen / custo_pen if custo_pen > 0 else 0
+        delta_pct_str  = f"{pct_ocs_ult - pct_ocs_pen:+.1%} vs mês anterior"
+        delta_tipo_ocs = "down" if pct_ocs_ult > pct_ocs_pen else "up"  # subiu = piora
+    else:
+        delta_pct_str  = None
+        delta_tipo_ocs = "off"
+
+    # DataFrame para gráficos
+    df_graf = df_sorted.copy()
+    df_graf['pct_ocs']        = df_graf['Taxa Ociosidade (Min)'] / (df_graf['Taxa Sala (Min)'] + df_graf['Taxa Ociosidade (Min)'])
+    df_graf['pct_prod']       = 1 - df_graf['pct_ocs']
+    df_graf['mes_label']      = df_graf['periodo'].astype(str)
+    df_graf['custo_total_min'] = df_graf['Taxa Sala (Min)'] + df_graf['Taxa Ociosidade (Min)']
+
+    return {
+        "df_u"           : df_u,
+        "df_sorted"      : df_sorted,
+        "df_graf"        : df_graf,
+        "tx_sala_mean"   : tx_sala_mean,
+        "tx_ocs_mean"    : tx_ocs_mean,
+        "custo_fixo_min" : custo_fixo_min,
+        "pct_ociosidade" : pct_ociosidade,
+        "pct_produtivo"  : pct_produtivo,
+        "delta_pct_str"  : delta_pct_str,
+        "delta_tipo_ocs" : delta_tipo_ocs,
+    }

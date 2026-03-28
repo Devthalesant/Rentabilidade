@@ -69,12 +69,13 @@ def page_current_year():
         )
 
     dados_retroativos = dados_retroativos_cache(tuple(lista_de_periodos_busca))
+
     # ── df_informativo de Taxa Sala e Ociosidade ──────────────────────────────
     @st.cache_data(ttl=3600)
     def kpis_taxa_sala_ocioisdade_gp_cache(_ano):
         _data = dados_completos_cache(_ano)
         return pegar_taxa_sala_ocs_periodo_unidade_atual(_data)
-    
+
     # ── KPIs gerais ───────────────────────────────────────────────────────────
     @st.cache_data(ttl=3600)
     def kpis_gerais_cache(_ano):
@@ -363,16 +364,14 @@ def page_current_year():
                 )
 
     # ── SEÇÃO: Tempo, Taxas e Ociosidade ─────────────────────────────────────
-    st.header("Tempo, Taxas e Ociosidade")
-    ## BAIXAR ESSE
-    df_tempo = carregar_tempo_unidade_mes(ano=ano_atual, mes=None, periodos=None, periodo=None)
+    st.header("⏳Tempo, Taxas e Ociosidade")
 
+    df_tempo = carregar_tempo_unidade_mes(ano=ano_atual, mes=None, periodos=None, periodo=None)
 
     minutos_disponiveis, minutos_pagos, minutos_ociosos, custo_da_ociosidade = gerar_kpis_tempo_rede(df_tempo)
 
     represent_pagos   = calcular_representatividade(minutos_pagos,   minutos_disponiveis)
     represent_ociosos = calcular_representatividade(minutos_ociosos, minutos_disponiveis)
-
 
     render_section_label("Indicadores de Ociosidade")
     col1, col2, col3, col4 = st.columns(4)
@@ -397,92 +396,38 @@ def page_current_year():
             help="Não é um custo extra. Representa a parte do custo fixo não absorvida pelos procedimentos vendidos.",
         )
 
+    # ── Gráfico: Evolução Mensal Ociosidade (rede) ────────────────────────────
     st.subheader("Evolução Mensal — Ociosidade")
 
-    df_ociosidade = df_tempo.copy()
-    df_ociosidade['Ociosidade'] = df_ociosidade['Tempo ocioso'] / df_ociosidade['Minutos Disponivel']
-    df_ociosidade['Produtivo'] = 1 - df_ociosidade['Ociosidade']
-
-    df_ociosidade_gp = (
-        df_ociosidade.groupby('Mes_num')
-        .agg({'Ociosidade': 'mean', 'Produtivo': 'mean'})
-        .reset_index()
-    )
-    df_ociosidade_gp['Mes_str'] = df_ociosidade_gp['Mes_num'].map(Month_dic_number_str)
-
-    fig = go.Figure()
-
-    # Barra de tempo produtivo (base)
-    fig.add_trace(go.Bar(
-        x=df_ociosidade_gp["Mes_str"],
-        y=df_ociosidade_gp["Produtivo"],
-        name="Tempo Produtivo",
-        marker_color="#0A84FF",
-        text=[f"{v:.0%}" for v in df_ociosidade_gp["Produtivo"]],
-        textposition="inside",
-        textfont=dict(color="white", size=13, family="Arial Black"),
-        insidetextanchor="middle",
-    ))
-
-    # Barra de ociosidade (topo)
-    fig.add_trace(go.Bar(
-        x=df_ociosidade_gp["Mes_str"],
-        y=df_ociosidade_gp["Ociosidade"],
-        name="Ociosidade",
-        marker_color="#FF2D55",
-        text=[f"{v:.0%}" for v in df_ociosidade_gp["Ociosidade"]],
-        textposition="inside",
-        textfont=dict(color="white", size=13, family="Arial Black"),
-        insidetextanchor="middle",
-    ))
-
-    fig.update_layout(
-        barmode="stack",
-        xaxis_title="Mês",
-        yaxis_title="Percentual",
-        yaxis_tickformat=".0%",
-        yaxis=dict(range=[0, 1]),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-    )
-
+    df_ociosidade_gp = tratar_ociosidade_mensal(df_tempo, Month_dic_number_str)
+    fig = grafico_ociosidade_mensal_rede(df_ociosidade_gp)
     st.plotly_chart(fig, use_container_width=True)
 
+    # ── Tabela Taxa Sala / Ociosidade por unidade ─────────────────────────────
     data_taxa_sala_ocs = kpis_taxa_sala_ocioisdade_gp_cache(ano_atual)
     st.dataframe(data_taxa_sala_ocs)
 
+    # ── Análise por unidade específica ────────────────────────────────────────
+    st.subheader("🗺️Unidade Específica")
     with st.expander("Clique aqui para uma análise por unidade"):
-        unidades_filtradas = [u for u in unidades if u != "TODAS"]
-        unidade_selecionada_ocs = st.selectbox("Selecione a Unidade Desejada:", unidades_filtradas, index=None, key="selectbox_ocs_unidade")
+        unidades_filtradas      = [u for u in unidades if u != "TODAS"]
+        unidade_selecionada_ocs = st.selectbox(
+            "Selecione a Unidade Desejada:", unidades_filtradas,
+            index=None, key="selectbox_ocs_unidade"
+        )
 
         if unidade_selecionada_ocs:
-            df_u = data_taxa_sala_ocs[data_taxa_sala_ocs['Unidade'] == unidade_selecionada_ocs].copy()
+            kpis_ocs = tratar_ociosidade_por_unidade(data_taxa_sala_ocs, unidade_selecionada_ocs)
 
-            # ── Cálculo dos KPIs ──────────────────────────────────────────────────
-            tx_sala_mean   = df_u['Taxa Sala (Min)'].mean()
-            tx_ocs_mean    = df_u['Taxa Ociosidade (Min)'].mean()
-            custo_fixo_min = tx_sala_mean + tx_ocs_mean
-            pct_ociosidade = tx_ocs_mean / custo_fixo_min if custo_fixo_min > 0 else 0
-            pct_produtivo  = 1 - pct_ociosidade
+            df_graf        = kpis_ocs["df_graf"]
+            pct_ociosidade = kpis_ocs["pct_ociosidade"]
+            pct_produtivo  = kpis_ocs["pct_produtivo"]
+            custo_fixo_min = kpis_ocs["custo_fixo_min"]
+            tx_ocs_mean    = kpis_ocs["tx_ocs_mean"]
+            delta_pct_str  = kpis_ocs["delta_pct_str"]
+            delta_tipo_ocs = kpis_ocs["delta_tipo_ocs"]
 
-            df_sorted = df_u.sort_values('periodo')
-
-            # Delta: variação percentual da ociosidade no último mês vs penúltimo
-            if len(df_sorted) >= 2:
-                ocs_ult = df_sorted.iloc[-1]['Taxa Ociosidade (Min)']
-                ocs_pen = df_sorted.iloc[-2]['Taxa Ociosidade (Min)']
-                custo_ult = df_sorted.iloc[-1]['Taxa Sala (Min)'] + ocs_ult
-                custo_pen = df_sorted.iloc[-2]['Taxa Sala (Min)'] + ocs_pen
-                pct_ocs_ult = ocs_ult / custo_ult if custo_ult > 0 else 0
-                pct_ocs_pen = ocs_pen / custo_pen if custo_pen > 0 else 0
-                delta_pct_str = f"{pct_ocs_ult - pct_ocs_pen:+.1%} vs mês anterior"
-                delta_tipo_ocs = "down" if pct_ocs_ult > pct_ocs_pen else "up"  # subiu = piora
-            else:
-                delta_pct_str  = None
-                delta_tipo_ocs = "off"
-
-            # ── KPI Cards — padrão render_kpi_operacional/financeiro ─────────────
+            # ── KPI Cards ────────────────────────────────────────────────────
             render_section_label(f"Indicadores de Ociosidade — {unidade_selecionada_ocs}")
             col1, col2, col3, col4 = st.columns(4)
 
@@ -518,100 +463,14 @@ def page_current_year():
 
             st.divider()
 
-            # ── Gráfico 1: Barras empilhadas 100% — largura total ─────────────────
+            # ── Gráfico 1: Barras empilhadas 100% ────────────────────────────
             render_section_label("Ociosidade vs Produtivo por Mês")
-
-            df_graf = df_sorted.copy()
-            df_graf['pct_ocs']  = df_graf['Taxa Ociosidade (Min)'] / (df_graf['Taxa Sala (Min)'] + df_graf['Taxa Ociosidade (Min)'])
-            df_graf['pct_prod'] = 1 - df_graf['pct_ocs']
-            df_graf['mes_label'] = df_graf['periodo'].astype(str)
-
-            fig1 = go.Figure()
-            fig1.add_trace(go.Bar(
-                x=df_graf["mes_label"],
-                y=df_graf["pct_prod"],
-                name="Tempo Produtivo",
-                marker_color="#00C2FF",
-                text=[f"{v:.0%}" for v in df_graf["pct_prod"]],
-                textposition="inside",
-                textfont=dict(color="white", size=13, family="Arial Black"),
-                insidetextanchor="middle",
-            ))
-            fig1.add_trace(go.Bar(
-                x=df_graf["mes_label"],
-                y=df_graf["pct_ocs"],
-                name="Ociosidade",
-                marker_color="#FF2D55",
-                text=[f"{v:.0%}" for v in df_graf["pct_ocs"]],
-                textposition="inside",
-                textfont=dict(color="white", size=13, family="Arial Black"),
-                insidetextanchor="middle",
-            ))
-            fig1.update_layout(
-                barmode="stack",
-                yaxis=dict(tickformat=".0%", range=[0, 1]),
-                xaxis_title="Mês",
-                yaxis_title="",
-                legend=dict(orientation="h", y=-0.2, x=0.5, xanchor="center"),
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#FFFFFF"),
-                margin=dict(t=10, b=60),
-                height=380,
-            )
+            fig1 = grafico_ociosidade_por_unidade(df_graf)
             st.plotly_chart(fig1, use_container_width=True)
 
-            # ── Gráfico 2: Linha — Evolução do Custo Fixo/Min — largura total ─────
+            # ── Gráfico 2: Linha — Evolução do Custo Fixo/Min ─────────────────
             render_section_label("Evolução do Custo Fixo por Minuto")
-
-            df_graf['custo_total_min'] = df_graf['Taxa Sala (Min)'] + df_graf['Taxa Ociosidade (Min)']
-
-            fig2 = go.Figure()
-            fig2.add_trace(go.Scatter(
-                x=df_graf["mes_label"],
-                y=df_graf["custo_total_min"],
-                mode="lines+markers+text",
-                name="Custo Total / Min",
-                line=dict(color="#00C2FF", width=3),
-                marker=dict(size=8, color="#00C2FF"),
-                text=[f"R${v:.4f}" for v in df_graf["custo_total_min"]],
-                textposition="top center",
-                textfont=dict(color="#00C2FF", size=11),
-            ))
-
-            fig2.add_trace(go.Scatter(
-                x=df_graf["mes_label"], 
-                y=df_graf["Taxa Sala (Min)"],
-                mode="lines+markers+text",
-                name="Taxa Sala / Min",
-                line=dict(color="#FFD60A", width=2, dash="dash"),
-                marker=dict(size=6, color="#FFD60A"),
-                text=[f"R${v:.4f}" for v in df_graf["Taxa Sala (Min)"]],
-                textposition="top center",
-                textfont=dict(color="#FFD60A", size=11),
-            ))
-
-            fig2.add_trace(go.Scatter(
-                x=df_graf["mes_label"],
-                y=df_graf["Taxa Ociosidade (Min)"],
-                mode="lines+markers+text",
-                name="Custo Ocioso / Min",
-                line=dict(color="#FF2D55", width=2, dash="dot"),
-                marker=dict(size=6, color="#FF2D55"),
-                text=[f"R${v:.4f}" for v in df_graf["Taxa Ociosidade (Min)"]],
-                textposition="bottom center",
-                textfont=dict(color="#FF2D55", size=11),
-            ))
-            fig2.update_layout(
-                xaxis_title="Mês",
-                yaxis_title="R$ / Min",
-                legend=dict(orientation="h", y=-0.2, x=0.5, xanchor="center"),
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#FFFFFF"),
-                margin=dict(t=10, b=60),
-                height=380,
-            )
+            fig2 = grafico_custo_fixo_por_minuto(df_graf)
             st.plotly_chart(fig2, use_container_width=True)
 
         else:
