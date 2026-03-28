@@ -102,21 +102,22 @@ button[data-testid="baseButton-headerNoPadding"] svg {
 }
 
 /* ===== Expander — remove marcador nativo do browser no summary ===== */
+/* O user agent aplica display:list-item em summary:first-of-type,
+   que gera o marcador "parc" (disclosure-closed).
+   Forçar display:flex sobrescreve isso completamente. */
 details > summary,
 details > summary:first-of-type,
 details[open] > summary:first-of-type {
+    display: flex !important;
     list-style: none !important;
     list-style-type: none !important;
     overflow: visible !important;
     white-space: nowrap !important;
 }
-/* Firefox */
-details > summary::-moz-list-bullet {
+details > summary::-webkit-details-marker,
+details > summary::marker {
     display: none !important;
-}
-/* WebKit / Chrome */
-details > summary::-webkit-details-marker {
-    display: none !important;
+    content: "" !important;
 }
 /* garante que o SVG do chevron continue visível */
 details summary svg {
