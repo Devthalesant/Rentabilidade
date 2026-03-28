@@ -79,37 +79,56 @@ _CSS_DARK_BASE = dedent("""
 
 /* ===== Botão collapse do sidebar (esconde o texto "keyboard_double_→") ===== */
 button[data-testid="baseButton-headerNoPadding"] {
-    color: transparent !important;
-    font-size: 0 !important;
-    line-height: 0 !important;
     overflow: hidden !important;
 }
-button[data-testid="baseButton-headerNoPadding"] > * {
+/* esconde qualquer nó de texto / span de ícone Material dentro do botão */
+button[data-testid="baseButton-headerNoPadding"] span,
+button[data-testid="baseButton-headerNoPadding"] p {
+    display: none !important;
     font-size: 0 !important;
-    color: transparent !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
 }
+/* mantém apenas o SVG visível */
 button[data-testid="baseButton-headerNoPadding"] svg {
     display: inline-block !important;
+    visibility: visible !important;
     color: var(--dk-text-soft) !important;
     width: 18px !important;
     height: 18px !important;
     flex-shrink: 0 !important;
 }
 
-/* ===== Expander — evita corte lateral ===== */
+/* ===== Expander — esconde texto "keyboard_double_→" no summary ===== */
 details > summary {
-    overflow: visible !important;
+    overflow: hidden !important;
     white-space: nowrap !important;
 }
-/* garante que o ícone de chevron do expander não seja cortado */
-details > summary > * {
-    overflow: visible !important;
+/* esconde o span de ícone Material que aparece como "keyboard_d..." */
+details > summary > span:first-child,
+details > summary [data-testid="stExpanderToggleIcon"],
+details > summary .st-emotion-cache-1h9usn1,
+details summary [class*="expanderIcon"] {
+    display: none !important;
+    font-size: 0 !important;
+    width: 0 !important;
+    visibility: hidden !important;
+    overflow: hidden !important;
 }
-details summary svg,
-details summary [data-testid="stExpanderToggleIcon"] {
+/* garante que o SVG do chevron continue visível */
+details summary svg {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    color: var(--dk-purple-vivid) !important;
+    width: 16px !important;
+    height: 16px !important;
+    overflow: visible !important;
+}
+details > summary > div,
+details > summary > p {
     overflow: visible !important;
 }
 
