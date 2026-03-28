@@ -103,14 +103,30 @@ button[data-testid="baseButton-headerNoPadding"] svg {
 
 /* ===== Expander — esconde texto "keyboard_double_→" no summary ===== */
 details > summary {
-    overflow: visible !important;
+    overflow: hidden !important;
     white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
 }
-/* O ícone Material é um span vazio (sem filhos) que vem ANTES do label.
-   Usamos :empty para pegar só ele, sem afetar o span que contém o texto. */
-details > summary > span:empty,
-details > summary [data-testid="stExpanderToggleIcon"] {
-    display: none !important;
+/* O ícone Material vem como span com font-family "Material Icons".
+   Zeramos o font-size e largura para sumir o texto sem afetar o layout. */
+details > summary > span[class],
+details > summary > span:first-of-type:not(:has(*)) {
+    font-size: 0 !important;
+    width: 0 !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+/* fallback mais agressivo: qualquer span com fonte Material Icons */
+details summary span {
+    font-family: inherit !important;
+}
+details summary span[style*="Material"],
+details summary .material-icons,
+details summary [class*="material"] {
+    font-size: 0 !important;
     width: 0 !important;
     overflow: hidden !important;
 }
@@ -119,10 +135,12 @@ details summary svg {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
+    font-size: initial !important;
     color: var(--dk-purple-vivid) !important;
     width: 16px !important;
     height: 16px !important;
     overflow: visible !important;
+    flex-shrink: 0 !important;
 }
 details > summary > div,
 details > summary > p {
