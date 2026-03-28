@@ -103,18 +103,15 @@ button[data-testid="baseButton-headerNoPadding"] svg {
 
 /* ===== Expander — esconde texto "keyboard_double_→" no summary ===== */
 details > summary {
-    overflow: hidden !important;
+    overflow: visible !important;
     white-space: nowrap !important;
 }
-/* esconde o span de ícone Material que aparece como "keyboard_d..." */
-details > summary > span:first-child,
-details > summary [data-testid="stExpanderToggleIcon"],
-details > summary .st-emotion-cache-1h9usn1,
-details summary [class*="expanderIcon"] {
+/* O ícone Material é um span vazio (sem filhos) que vem ANTES do label.
+   Usamos :empty para pegar só ele, sem afetar o span que contém o texto. */
+details > summary > span:empty,
+details > summary [data-testid="stExpanderToggleIcon"] {
     display: none !important;
-    font-size: 0 !important;
     width: 0 !important;
-    visibility: hidden !important;
     overflow: hidden !important;
 }
 /* garante que o SVG do chevron continue visível */
