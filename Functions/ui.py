@@ -101,41 +101,28 @@ button[data-testid="baseButton-headerNoPadding"] svg {
     flex-shrink: 0 !important;
 }
 
-/* ===== Expander — esconde texto "keyboard_double_→" no summary ===== */
-details > summary {
-    overflow: hidden !important;
+/* ===== Expander — remove marcador nativo do browser no summary ===== */
+details > summary,
+details > summary:first-of-type,
+details[open] > summary:first-of-type {
+    list-style: none !important;
+    list-style-type: none !important;
+    overflow: visible !important;
     white-space: nowrap !important;
-    display: flex !important;
-    align-items: center !important;
 }
-/* O ícone Material vem como span com font-family "Material Icons".
-   Zeramos o font-size e largura para sumir o texto sem afetar o layout. */
-details > summary > span[class],
-details > summary > span:first-of-type:not(:has(*)) {
-    font-size: 0 !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-    margin: 0 !important;
+/* Firefox */
+details > summary::-moz-list-bullet {
+    display: none !important;
 }
-/* fallback mais agressivo: qualquer span com fonte Material Icons */
-details summary span {
-    font-family: inherit !important;
-}
-details summary span[style*="Material"],
-details summary .material-icons,
-details summary [class*="material"] {
-    font-size: 0 !important;
-    width: 0 !important;
-    overflow: hidden !important;
+/* WebKit / Chrome */
+details > summary::-webkit-details-marker {
+    display: none !important;
 }
 /* garante que o SVG do chevron continue visível */
 details summary svg {
     display: inline-block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    font-size: initial !important;
     color: var(--dk-purple-vivid) !important;
     width: 16px !important;
     height: 16px !important;
