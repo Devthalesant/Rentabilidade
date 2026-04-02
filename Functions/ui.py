@@ -22,6 +22,19 @@ import streamlit.components.v1 as components
 
 _CSS_DARK_BASE = dedent("""
 <style>
+/* ===== Material Symbols Rounded — self-hosted =====
+   Arquivo: static/MaterialSymbolsRounded.woff2
+   Habilitar no config.toml: [server] enableStaticServing = true
+   Resolve o bug de ícones aparecendo como texto literal (keyboard_double_arrow_right)
+   quando o Google Fonts está bloqueado por proxy/firewall corporativo. ===== */
+@font-face {
+    font-family: 'Material Symbols Rounded';
+    font-style: normal;
+    font-weight: 100 700;
+    font-display: block;
+    src: url('/app/static/MaterialSymbolsRounded.woff2') format('woff2');
+}
+
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
 
 /* ===== Tokens ===== */
@@ -136,17 +149,9 @@ details > summary > p {
 }
 
 /* ===== Tipografia global ===== */
-/* IMPORTANTE: removido [class*="css"] e span do seletor global.
-   O Streamlit usa classes st-emotion-cache-* com font-family "Material Symbols Rounded"
-   para renderizar ícones. Se sobrescrevemos font-family nessas classes,
-   o ícone vira texto literal (ex: "keyboard_double_arrow_right"). */
-html, body, .stMarkdown, p, div {
+html, body, [class*="css"], .stMarkdown, p, span, div {
     font-family: "DM Sans", "Segoe UI", sans-serif !important;
     color: var(--dk-text);
-}
-/* Aplica DM Sans em spans genéricos, protegendo os de ícone Material */
-span:not([class*="material"]):not([style*="Material"]) {
-    font-family: "DM Sans", "Segoe UI", sans-serif !important;
 }
 
 h1, h2, h3 {
