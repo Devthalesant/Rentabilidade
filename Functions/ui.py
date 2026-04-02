@@ -77,27 +77,19 @@ _CSS_DARK_BASE = dedent("""
     max-width: 1280px !important;
 }
 
-/* ===== Botão collapse do sidebar — suprime ícone Material (keyboard_double_arrow) ===== */
-/* Estratégia: font-size:0 + color:transparent mata tanto o texto literal
-   quanto a renderização da fonte Material Symbols, sem quebrar o layout */
+/* ===== Botão collapse do sidebar (esconde o texto "keyboard_double_→") ===== */
 button[data-testid="baseButton-headerNoPadding"] {
     overflow: hidden !important;
-    font-size: 0 !important;
-    color: transparent !important;
 }
-button[data-testid="baseButton-headerNoPadding"] *,
+/* esconde qualquer nó de texto / span de ícone Material dentro do botão */
 button[data-testid="baseButton-headerNoPadding"] span,
-button[data-testid="baseButton-headerNoPadding"] p,
-button[data-testid="baseButton-headerNoPadding"] .material-symbols-rounded,
-button[data-testid="baseButton-headerNoPadding"] [class*="material"] {
+button[data-testid="baseButton-headerNoPadding"] p {
+    display: none !important;
     font-size: 0 !important;
-    color: transparent !important;
-    line-height: 0 !important;
     width: 0 !important;
     height: 0 !important;
     overflow: hidden !important;
     visibility: hidden !important;
-    display: none !important;
 }
 /* mantém apenas o SVG visível */
 button[data-testid="baseButton-headerNoPadding"] svg {
@@ -109,10 +101,10 @@ button[data-testid="baseButton-headerNoPadding"] svg {
     flex-shrink: 0 !important;
 }
 
-/* ===== Expander — remove marcador nativo + suprime ícone Material no chevron ===== */
-/* O user agent aplica display:list-item em summary:first-of-type → gera marcador "parc".
-   Forçar display:flex sobrescreve. O Streamlit também injeta um span.material-symbols-rounded
-   com o texto "keyboard_double_arrow_right" — matamos com font-size:0 + color:transparent */
+/* ===== Expander — remove marcador nativo do browser no summary ===== */
+/* O user agent aplica display:list-item em summary:first-of-type,
+   que gera o marcador "parc" (disclosure-closed).
+   Forçar display:flex sobrescreve isso completamente. */
 details > summary,
 details > summary:first-of-type,
 details[open] > summary:first-of-type {
@@ -126,19 +118,6 @@ details > summary::-webkit-details-marker,
 details > summary::marker {
     display: none !important;
     content: "" !important;
-}
-/* Suprime ícone Material Symbols dentro do summary (aparece como texto literal
-   quando a fonte não renderiza) */
-details summary .material-symbols-rounded,
-details summary [class*="material"],
-details summary span[style*="font-family: Material"],
-details summary span[style*="Material Symbols"] {
-    font-size: 0 !important;
-    color: transparent !important;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-    display: none !important;
 }
 /* garante que o SVG do chevron continue visível */
 details summary svg {
@@ -157,9 +136,17 @@ details > summary > p {
 }
 
 /* ===== Tipografia global ===== */
-html, body, [class*="css"], .stMarkdown, p, span, div {
+/* IMPORTANTE: removido [class*="css"] e span do seletor global.
+   O Streamlit usa classes st-emotion-cache-* com font-family "Material Symbols Rounded"
+   para renderizar ícones. Se sobrescrevemos font-family nessas classes,
+   o ícone vira texto literal (ex: "keyboard_double_arrow_right"). */
+html, body, .stMarkdown, p, div {
     font-family: "DM Sans", "Segoe UI", sans-serif !important;
     color: var(--dk-text);
+}
+/* Aplica DM Sans em spans genéricos, protegendo os de ícone Material */
+span:not([class*="material"]):not([style*="Material"]) {
+    font-family: "DM Sans", "Segoe UI", sans-serif !important;
 }
 
 h1, h2, h3 {
