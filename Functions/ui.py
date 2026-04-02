@@ -22,11 +22,8 @@ import streamlit.components.v1 as components
 
 _CSS_DARK_BASE = dedent("""
 <style>
-/* ===== Material Symbols Rounded — self-hosted =====
-   Arquivo: static/MaterialSymbolsRounded.woff2
-   Habilitar no config.toml: [server] enableStaticServing = true
-   Resolve o bug de ícones aparecendo como texto literal (keyboard_double_arrow_right)
-   quando o Google Fonts está bloqueado por proxy/firewall corporativo. ===== */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
+
 @font-face {
     font-family: 'Material Symbols Rounded';
     font-style: normal;
@@ -34,8 +31,6 @@ _CSS_DARK_BASE = dedent("""
     font-display: block;
     src: url('/app/static/MaterialSymbolsRounded.woff2') format('woff2');
 }
-
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
 
 /* ===== Tokens ===== */
 :root {
@@ -149,7 +144,11 @@ details > summary > p {
 }
 
 /* ===== Tipografia global ===== */
-html, body, [class*="css"], .stMarkdown, p, span, div {
+/* ATENÇÃO: [class*="css"] e span foram removidos intencionalmente.
+   O Streamlit usa classes st-emotion-cache-* com font-family "Material Symbols Rounded"
+   para renderizar ícones. Incluir [class*="css"] ou span com font-family !important
+   sobrescreve essa fonte e faz os ícones aparecerem como texto literal. */
+html, body, .stMarkdown, p, div {
     font-family: "DM Sans", "Segoe UI", sans-serif !important;
     color: var(--dk-text);
 }
