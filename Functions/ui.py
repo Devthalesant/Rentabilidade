@@ -24,14 +24,6 @@ _CSS_DARK_BASE = dedent("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
 
-@font-face {
-    font-family: 'Material Symbols Rounded';
-    font-style: normal;
-    font-weight: 100 700;
-    font-display: block;
-    src: url('/app/static/MaterialSymbolsRounded.woff2') format('woff2');
-}
-
 /* ===== Tokens ===== */
 :root {
     --dk-bg:            #0e0c12;
@@ -144,10 +136,8 @@ details > summary > p {
 }
 
 /* ===== Tipografia global ===== */
-/* ATENÇÃO: [class*="css"] e span foram removidos intencionalmente.
-   O Streamlit usa classes st-emotion-cache-* com font-family "Material Symbols Rounded"
-   para renderizar ícones. Incluir [class*="css"] ou span com font-family !important
-   sobrescreve essa fonte e faz os ícones aparecerem como texto literal. */
+/* [class*="css"] e span removidos — sobrescrevem a fonte Material Symbols
+   usada pelo Streamlit para renderizar ícones, causando texto literal */
 html, body, .stMarkdown, p, div {
     font-family: "DM Sans", "Segoe UI", sans-serif !important;
     color: var(--dk-text);
