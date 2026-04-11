@@ -297,7 +297,8 @@ def criar_base_final(vmb, log=None):
 
     unidades_a_desconsiderar = [
         'PRAIA GRANDE', 'PRÓ-CORPO ACADEMY', 'Harmonização Intíma',
-        'RIBEIRÃO PRETO', 'BELO HORIZONTE', 'INSIDE SALES', 'LOJA ONLINE'
+        'RIBEIRÃO PRETO', 'BELO HORIZONTE', 'INSIDE SALES', 'LOJA ONLINE',
+        'PLÁSTICA'
     ]
     vmb = vmb.loc[~vmb['Unidade'].isin(unidades_a_desconsiderar)]
 
