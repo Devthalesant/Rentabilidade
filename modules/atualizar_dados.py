@@ -57,7 +57,7 @@ def garantir_coluna_custo_total(df):
     df["CUSTO TOTAL"] = df["CUSTO PRODUTO"] + df["MOD"] + df["CUSTO INSUMOS"]
     return df
 
-
+## CUsto de produtos
 def salvar_df_custos_no_mes(database_name, collection_name, doc_id, mes, df_custos):
     df_custos = garantir_coluna_custo_total(df_custos)
 
@@ -219,7 +219,8 @@ def render_tab_upload_bases(database_name):
                             if msg:
                                 status.write(msg)
 
-                        subir_dados_tratados(base_tratada)
+                        sucess_message = subir_dados_tratados(base_tratada)
+                        st.write(sucess_message)
                         subir_tempo_unidade_mes_periodo(df_tempo_unidade_mes)
                         status.write(f"✅ {nome_da_base} tratada e atualizada com sucesso.")
 
