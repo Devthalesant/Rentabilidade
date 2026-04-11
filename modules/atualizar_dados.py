@@ -191,50 +191,58 @@ def render_tab_upload_bases(database_name):
             st.dataframe(base["data"], use_container_width=True, height=350)
 
     if st.button("Subir bases para o MongoDB", type="primary", key="btn_subir_bases"):
-        with st.status("Atualizando banco de dados...", expanded=True) as status:
-            for base in bases:
-                nome_da_base = base["nome"]
-                df_base = base["data"]
-                status.write(f"Processando {nome_da_base}...")
+            erros_encontrados = []
 
-                try:
-                    if nome_da_base == "Impostos e Taxas 🧾":
-                        subir_custos_financeiros_periodo(df_base, int(ano), mes, nome_mes)
-                        status.write(f"✅ {nome_da_base} atualizada com sucesso.")
+            with st.status("Atualizando banco de dados...", expanded=True) as status:
+                for base in bases:
+                    nome_da_base = base["nome"]
+                    df_base = base["data"]
+                    status.write(f"⏳ Processando {nome_da_base}...")
 
-                    elif nome_da_base == "Custo Fixo 💼":
-                        subir_custos_fixos_periodo(df_base, int(ano), mes, nome_mes)
-                        status.write(f"✅ {nome_da_base} atualizada com sucesso.")
+                    try:
+                        if nome_da_base == "Impostos e Taxas 🧾":
+                            subir_custos_financeiros_periodo(df_base, int(ano), mes, nome_mes)
+                            status.write(f"✅ {nome_da_base} atualizada com sucesso.")
 
-                    elif nome_da_base == "Vendas Mensal Brutas 💵":
-                        resultado = criar_base_final(df_base)
+                        elif nome_da_base == "Custo Fixo 💼":
+                            subir_custos_fixos_periodo(df_base, int(ano), mes, nome_mes)
+                            status.write(f"✅ {nome_da_base} atualizada com sucesso.")
 
-                        if resultado is None:
-                            status.write("❌ A base de vendas não foi tratada. Verifique os cadastros obrigatórios.")
-                            continue
+                        elif nome_da_base == "Vendas Mensal Brutas 💵":
+                            resultado = criar_base_final(df_base)
 
-                        df_tempo_unidade_mes, base_tratada, msg1, msg2, msg3, msg4 = resultado
+                            if resultado is None:
+                                status.write("❌ A base de vendas não foi tratada. Verifique os cadastros obrigatórios.")
+                                erros_encontrados.append(nome_da_base)
+                                continue
 
-                        for msg in [msg1, msg2, msg3, msg4]:
-                            if msg:
-                                status.write(msg)
+                            df_tempo_unidade_mes, base_tratada, msg1, msg2, msg3, msg4 = resultado
 
-                        sucess_message = subir_dados_tratados(base_tratada)
-                        st.write(sucess_message)
-                        subir_tempo_unidade_mes_periodo(df_tempo_unidade_mes)
-                        status.write(f"✅ {nome_da_base} tratada e atualizada com sucesso.")
+                            for msg in [msg1, msg2, msg3, msg4]:
+                                if msg:
+                                    status.write(msg)
 
-                except Exception as e:
-                    status.write(f"❌ Erro em {nome_da_base}: {str(e)}")
+                            sucess_message = subir_dados_tratados(base_tratada)
+                            status.write(sucess_message)  # ← era st.write, agora dentro do status
+                            subir_tempo_unidade_mes_periodo(df_tempo_unidade_mes)
+                            status.write(f"✅ {nome_da_base} tratada e atualizada com sucesso.")
 
-                time.sleep(0.3)
+                    except Exception as e:
+                        status.write(f"❌ Erro em {nome_da_base}: {str(e)}")
+                        erros_encontrados.append(nome_da_base)
 
-            status.update(label="✅ Upload concluído com sucesso.", state="complete", expanded=True)
+                    time.sleep(0.3)
 
-        st.session_state["aba_atualizar_banco_pendente"] = "📤 Upload de Bases"
-        st.session_state["flash_success"] = "✅ As bases foram atualizadas com sucesso."
-        time.sleep(45)
-        st.rerun()
+                # ← expanded=True mantém aberto para o usuário ler
+                status.update(label="✅ Upload concluído!", state="complete", expanded=True)
+
+            # ← Só rerun depois que o usuário confirmar, ou com delay
+            st.session_state["aba_atualizar_banco_pendente"] = "📤 Upload de Bases"
+            st.session_state["flash_success"] = "✅ As bases foram atualizadas com sucesso."
+
+            # Botão explícito para o usuário fechar e continuar
+            if st.button("Continuar →", key="btn_continuar_apos_upload"):
+                st.rerun()
 
 
 # =========================================================
