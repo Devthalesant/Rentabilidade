@@ -227,7 +227,7 @@ def render_tab_upload_bases(database_name):
                 except Exception as e:
                     status.write(f"❌ Erro em {nome_da_base}: {str(e)}")
 
-                time.sleep(0.3)
+                time.sleep(1)
 
             status.update(label="✅ Upload concluído com sucesso.", state="complete", expanded=False)
 
