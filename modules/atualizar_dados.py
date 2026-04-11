@@ -209,21 +209,16 @@ def render_tab_upload_bases(database_name):
                             status.write(f"✅ {nome_da_base} atualizada com sucesso.")
 
                         elif nome_da_base == "Vendas Mensal Brutas 💵":
-                            resultado = criar_base_final(df_base)
+                            resultado = criar_base_final(df_base, log=status.write)  # ← passa o writer
 
                             if resultado is None:
-                                status.write("❌ A base de vendas não foi tratada. Verifique os cadastros obrigatórios.")
-                                erros_encontrados.append(nome_da_base)
+                                status.write("❌ Upload de vendas abortado. Corrija os itens acima e tente novamente.")
                                 continue
 
-                            df_tempo_unidade_mes, base_tratada, msg1, msg2, msg3, msg4 = resultado
-
-                            for msg in [msg1, msg2, msg3, msg4]:
-                                if msg:
-                                    status.write(msg)
+                            df_tempo_unidade_mes, base_tratada = resultado  # ← sem as msgs no retorno
 
                             sucess_message = subir_dados_tratados(base_tratada)
-                            status.write(sucess_message)  # ← era st.write, agora dentro do status
+                            status.write(sucess_message)
                             subir_tempo_unidade_mes_periodo(df_tempo_unidade_mes)
                             status.write(f"✅ {nome_da_base} tratada e atualizada com sucesso.")
 
