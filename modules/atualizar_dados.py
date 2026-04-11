@@ -227,12 +227,13 @@ def render_tab_upload_bases(database_name):
                 except Exception as e:
                     status.write(f"❌ Erro em {nome_da_base}: {str(e)}")
 
-                time.sleep(30)
+                time.sleep(0.3)
 
             status.update(label="✅ Upload concluído com sucesso.", state="complete", expanded=True)
 
         st.session_state["aba_atualizar_banco_pendente"] = "📤 Upload de Bases"
         st.session_state["flash_success"] = "✅ As bases foram atualizadas com sucesso."
+        time.sleep(45)
         st.rerun()
 
 
