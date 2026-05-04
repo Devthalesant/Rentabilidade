@@ -496,11 +496,11 @@ def criar_base_final(vmb, log=None):
         vmb_custo_fixo_produto_fin['Custo_Produto']
         + vmb_custo_fixo_produto_fin['Custo_MOD']
         + vmb_custo_fixo_produto_fin['Custo_insumos']
+        + vmb_custo_fixo_produto_fin['Custo_financeiro_produto']
     )
     vmb_custo_fixo_produto_fin['Custo_total_procedimento'] = (
         vmb_custo_fixo_produto_fin['Custo_fixo']
         + vmb_custo_fixo_produto_fin['Custo_direto_procedimento']
-        + vmb_custo_fixo_produto_fin['Custo_financeiro_produto']
     )
     vmb_custo_fixo_produto_fin['Lucro_líquido_item'] = (
         vmb_custo_fixo_produto_fin['Valor liquido item']
