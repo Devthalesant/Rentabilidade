@@ -279,23 +279,31 @@ def subir_custos_financeiros_periodo(
 def subir_dados_tratados(treated_vmb):
 
     uri = st.secrets.mongo_credentials.uri
-
-    # Conectando ao MongoDB
-    client = MongoClient(uri, retryWrites=True, serverSelectionTimeoutMS=30000)  # Altere o URI conforme necessário
+    client = MongoClient(uri, retryWrites=True, serverSelectionTimeoutMS=30000)
     db = client['rentabilidade_anual']
     collection = db['Base_Rentabilidade_mensal']
 
     treated_vmb['periodo'] = treated_vmb['Ano'].astype(str) + '-' + treated_vmb['Mes_num'].astype(str).str.zfill(2)
-        
-
-    # Passo 3: Subir para o MongoDB
-    # Convertendo o dataframe para um formato que o MongoDB compreende (lista de dicionários)
+    periodos_subidos = sorted(treated_vmb['periodo'].unique().tolist())
     records = treated_vmb.to_dict('records')
-    collection.insert_many(records)
-    
-    sucess_message = f"Base tratada do período {treated_vmb['periodo']} adicionada com Sucesso !"
 
-    return sucess_message
+    # Prepara os lotes ANTES de deletar
+    batch_size = 1000
+    batches = [records[i:i + batch_size] for i in range(0, len(records), batch_size)]
+
+    # Só deleta depois que os dados estão prontos
+    resultado = collection.delete_many({'periodo': {'$in': periodos_subidos}})
+    print(f"🗑️ {resultado.deleted_count} documentos deletados")
+
+    # Insere em lotes
+    total_inserido = 0
+    for i, batch in enumerate(batches):
+        collection.insert_many(batch)
+        total_inserido += len(batch)
+        print(f"📦 Lote {i+1}/{len(batches)} inserido — {total_inserido}/{len(records)} docs")
+
+    success_message = f"✅ Períodos atualizados: {', '.join(periodos_subidos)}"
+    return success_message
 
 
 def subir_custos_fixos_periodo(

@@ -264,6 +264,7 @@ def criar_base_final(vmb, log=None):
     vmb['Mes_num'] = vmb['Data venda'].dt.strftime('%m')
     vmb['Ano'] = vmb['Data venda'].dt.year
 
+    # Tem que rodas uma vez por Mês (se for atualizar dados em lotes, colocar a função dentro de um for...)
     Mes_num = vmb['Mes_num'].iloc[0]
     periodo = f"{vmb['Ano'].iloc[0]}-{str(vmb['Mes_num'].iloc[0]).zfill(2)}"
     ano = vmb['Ano'].iloc[0]

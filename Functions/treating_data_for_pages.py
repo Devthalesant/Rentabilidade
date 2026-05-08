@@ -100,7 +100,8 @@ def gerar_groupby_para_analise_de_procedimento(data_for_procedures):
                                                                     'Lucro_líquido_item_%' : 'Lucro_Líquido_%'}).reset_index(drop=True)
     
     
-    data_for_procedures_gp['Margem_de_Contribuição'] = data_for_procedures_gp['Custo_Direto'] / data_for_procedures_gp['Receita_Gerada']
+    data_for_procedures_gp['Margem_de_Contribuição'] = ((data_for_procedures_gp['Receita_Gerada'] - data_for_procedures_gp['Custo_Direto'])
+                                                         / data_for_procedures_gp['Receita_Gerada'])
 
     data_for_procedures_gp_columns = ['Procedimento_padronizado','Preço_Praticado','Quantidade','Receita_Gerada',
                                     'Custo_Direto','Margem_de_Contribuição','Custo_Fixo','Custo_Total',
