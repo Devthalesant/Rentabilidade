@@ -13,17 +13,17 @@ from Functions.aux_generic_functions import *
 # HELPERS
 # =========================================================
 
-def get_mes_atual_str():
-    return datetime.now().strftime("%m")
+# def get_mes_atual_str():
+#     return datetime.now().strftime("%m")
 
 ## Caso de precisar atualizar De-Para do mês anteiror!!!
-# def get_mes_atual_str():
-#     # Obtém o primeiro dia do mês atual
-#     primeiro_dia_atual = datetime.now().replace(day=1)
-#     # Subtrai 1 dia para ir ao último dia do mês anterior
-#     mes_anterior = primeiro_dia_atual - timedelta(days=1)
-#     # Retorna o mês formatado com dois dígitos
-#     return mes_anterior.strftime("%m")
+def get_mes_atual_str():
+    # Obtém o primeiro dia do mês atual
+    primeiro_dia_atual = datetime.now().replace(day=1)
+    # Subtrai 1 dia para ir ao último dia do mês anterior
+    mes_anterior = primeiro_dia_atual - timedelta(days=1)
+    # Retorna o mês formatado com dois dígitos
+    return mes_anterior.strftime("%m")
 
 
 def get_mes_anterior_str():
