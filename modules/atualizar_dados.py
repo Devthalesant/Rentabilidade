@@ -14,7 +14,7 @@ from Functions.aux_generic_functions import *
 # =========================================================
 
 def get_mes_atual_str():
-    return datetime.now().strftime("%m")
+    return datetime.now(-12).strftime("%m")
 
 
 def get_mes_anterior_str():
@@ -366,7 +366,7 @@ def render_tab_depara(
 
     _init_depara_state()
 
-    mes_atual = get_mes_atual_str()
+    mes_atual = get_mes_atual_str() 
 
     df_custos_dict, _ = carregar_custos_mes(database_name, collection_name_3, doc_id_3, mes_atual)
     if df_custos_dict is None:
