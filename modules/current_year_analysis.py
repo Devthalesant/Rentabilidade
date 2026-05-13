@@ -294,7 +294,7 @@ def page_current_year():
                     cols_escala_cor=['Lucro_Líquido', 'Receita_Gerada'],
                     verde_menor=False,
                 ),
-                use_container_width=True,
+                use_container_width=False,
             )
 
     # ── Produto específico ────────────────────────────────────────────────────
