@@ -14,7 +14,7 @@ from Functions.aux_generic_functions import *
 # =========================================================
 
 def get_mes_atual_str():
-    return datetime.now(-12).strftime("%m")
+    return datetime.now().strftime("%m")
 
 
 def get_mes_anterior_str():
