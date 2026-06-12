@@ -4,3 +4,6 @@ auth/
 .streamlit/secrets.toml
 Functions/fetch_api_crm.py
 *.ipynb
+__pycache__/
+*.pyc
+*.pyo
