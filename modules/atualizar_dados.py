@@ -29,7 +29,7 @@ def get_mes_atual_str():
 def get_mes_anterior_str():
     hoje = datetime.now()
     mes_atual = hoje.month
-    mes_anterior = 12 if mes_atual == 1 else mes_atual - 1
+    mes_anterior = 12 if mes_atual == 1 else mes_atual - 2
     return f"{mes_anterior:02d}"
 
 
