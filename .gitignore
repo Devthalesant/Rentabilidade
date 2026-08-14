@@ -7,3 +7,4 @@ Functions/fetch_api_crm.py
 __pycache__/
 *.pyc
 *.pyo
+*.xlsx
